@@ -60,6 +60,8 @@ class MyApplicationShould {
                             "{\"number\":${text.length},\"string\":\"$text\"}",
                             true
                     )
+                    assertThat(record.key())
+                            .isEqualTo("key-${text.length}")
                 }
     }
 

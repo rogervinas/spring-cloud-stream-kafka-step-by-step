@@ -19,6 +19,8 @@ Sections:
 * [Consumer](#consumer)
   * [Consumer with annotations (legacy)](#consumer-with-annotations-legacy) 
   * [Consumer with functional programming model](#consumer-with-functional-programming-model)
+* [Extras](#extras)
+  * [Kafka Message Key](#kafka-message-key)
 
 ## Producer
 
@@ -355,3 +357,57 @@ class MyConfiguration {
 * Just as an example, we create an instance of type `MyEventConsumer` that justs prints the event.
 
 #### 4) Same test [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt) should work as well!
+
+## Extras
+
+### Kafka Message Key
+
+Kafka topics are partitioned to allow horizontal scalability.
+
+When a message is sent to a topic, Kafka chooses randomly the destination partition. If we specify a key for the message, Kafka will use this key to choose the destination partition, then all messages sharing the same key will always be sent to the same partition.
+
+This is important on the consumer side, because chronological order of messages is only guaranteed within the same partition, so if we need to consume some messages in the order they were produced, we should use the same key for all of them (i.e. for messages of a *user*, we use the *user* id as the message key).
+
+To specify the message key in our `MyStreamEventProducer` we can produce `Message<MyEventPayload>` instead of `MyEventPayload` and inform the `KafkaHeaders.MESSAGE_KEY` header:
+```kotlin
+class MyStreamEventProducer : Supplier<Flux<Message<MyEventPayload>>>, MyEventProducer {
+
+  // ...
+  
+  override fun produce(event: MyEvent) {
+    val message = MessageBuilder
+            .withPayload(MyEventPayload(event.text, event.text.length))
+            .setHeader(KafkaHeaders.MESSAGE_KEY, "key-${event.text.length}")
+            .build()
+    sink.emitNext(message, FAIL_FAST)
+  }
+  
+  // ...
+}
+```
+
+Then we can test it like this:
+```kotlin
+@Test
+fun `produce event`() {
+    val text = "hello ${UUID.randomUUID()}"
+    eventProducer.produce(MyEvent(text))
+
+    val records = kafkaConsumerHelper.consumeAtLeast(1, TEN_SECONDS)
+
+    assertThat(records)
+            .singleElement().satisfies { record ->
+                // check the message payload
+                JSONAssert.assertEquals(
+                        record.value(),
+                        "{\"number\":${text.length},\"string\":\"$text\"}",
+                        true
+                )
+                // check the message key
+                assertThat(record.key())
+                        .isEqualTo("key-${text.length}")
+            }
+}
+```
+
+Alternatively we can use `partitionKeyExpression` and other related [binding producer properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#_producer_properties) to achieve the same but at the binding abstraction level of Spring Cloud Stream.

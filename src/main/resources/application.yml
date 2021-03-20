@@ -13,6 +13,8 @@ spring:
       kafka:
         binder:
           brokers: "localhost:9094"
+          producer-properties:
+            key.serializer: "org.apache.kafka.common.serialization.StringSerializer"
       bindings:
         my-producer-out-0:
           destination: "my.topic"
