@@ -2,7 +2,9 @@
 
 # Spring Cloud Stream step by step
 
-[Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream) is the solution provided by Spring to build applications connected to shared messaging systems. It offers an abstraction (the "binding") that works the same whatever underneath implementation we use (the "binder"): Apache Kafka, Rabbit MQ, Kafka Streams, ...
+[Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream) is the solution provided by Spring to build applications connected to shared messaging systems.
+
+It offers an abstraction (the "binding") that works the same whatever underneath implementation we use (the "binder"): Apache Kafka, Rabbit MQ, Kafka Streams, ...
 
 As of today there are two ways to configure Spring Cloud Stream:
 * With annotations (legacy since 3.1)
@@ -21,6 +23,7 @@ Sections:
   * [Consumer with functional programming model](#consumer-with-functional-programming-model)
 * [Extras](#extras)
   * [Kafka Message Key](#kafka-message-key)
+  * [Retries](#retries)
 
 ## Producer
 
@@ -281,7 +284,7 @@ Check the working test in [MyApplicationShould.kt](src/test/kotlin/com/rogervina
 @SpringBootTest
 class MyApplicationShould {
 
-    // we mock our MyEventConsumer
+    // we mock MyEventConsumer
     @MockBean lateinit var eventConsumer: MyEventConsumer
 
    @Test
@@ -290,7 +293,7 @@ class MyApplicationShould {
       val text = "hello ${UUID.randomUUID()}"
       kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
-      // we wait at most 5 seconds to receive the expected MyEvent in the mocked MyEventConsumer
+      // we wait at most 5 seconds to receive the expected MyEvent in the MyEventConsumer mock
       val eventCaptor = argumentCaptor<MyEvent>()
       verify(eventConsumer, timeout(FIVE_SECONDS.toMillis())).consume(eventCaptor.capture())
 
@@ -386,7 +389,7 @@ class MyStreamEventProducer : Supplier<Flux<Message<MyEventPayload>>>, MyEventPr
 }
 ```
 
-Then we can test it like this:
+And we can test it like this:
 ```kotlin
 @Test
 fun `produce event`() {
@@ -411,3 +414,45 @@ fun `produce event`() {
 ```
 
 Alternatively we can use `partitionKeyExpression` and other related [binding producer properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#_producer_properties) to achieve the same but at the binding abstraction level of Spring Cloud Stream.
+
+### Retries
+
+If errors are thrown while consuming messages, we can tell Spring Cloud Stream what to do using the following [binding consumer properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#_consumer_properties):
+* **maxAttempts**: number of retries
+* **backOffInitialInterval**, **backOffMaxInterval**, **backOffMultiplier**: backoff parameters to increase delay between retries
+* **defaultRetryable**, **retryableExceptions**: which exceptions retry or not
+
+For example we can use this configuration:
+```yaml
+spring:
+  cloud:
+    stream:
+      bindings:
+        my-consumer-in-0:
+          destination: "my.topic"
+          group: "${spring.application.name}"
+          consumer:
+            max-attempts: 5
+            back-off-initial-interval: 100
+            default-retryable: false
+            retryable-exceptions:
+              com.rogervinas.stream.domain.MyRetryableException: true            
+```
+
+And we can test it like this:
+```kotlin
+@Test
+fun `retry consume event 5 times`() {
+    // we throw a MyRetryableException every time we receive a message
+    val eventCaptor = argumentCaptor<MyEvent>()
+    doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(eventCaptor.capture())
+
+    // we send a Kafka message using a helper
+    val text = "hello ${UUID.randomUUID()}"
+    kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
+
+    // consumer has been called five times with the same message
+    verify(eventConsumer, timeout(TEN_SECONDS.toMillis()).times(FIVE)).consume(eventCaptor.capture())
+    assertThat(eventCaptor.allValues).allSatisfy { event -> assertThat(event.text).isEqualTo(text) }
+}
+```

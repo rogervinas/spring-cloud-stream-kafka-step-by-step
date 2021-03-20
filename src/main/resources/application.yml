@@ -21,5 +21,11 @@ spring:
         my-consumer-in-0:
           destination: "my.topic"
           group: "${spring.application.name}"
+          consumer:
+            max-attempts: 5
+            back-off-initial-interval: 100
+            default-retryable: false
+            retryable-exceptions:
+              com.rogervinas.stream.domain.MyRetryableException: true
     function:
       definition: "my-producer;my-consumer"

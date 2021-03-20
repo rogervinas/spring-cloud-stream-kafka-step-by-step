@@ -1,11 +1,13 @@
 package com.rogervinas.stream
 
 import com.nhaarman.mockito_kotlin.argumentCaptor
+import com.nhaarman.mockito_kotlin.doThrow
 import com.nhaarman.mockito_kotlin.timeout
 import com.nhaarman.mockito_kotlin.verify
 import com.rogervinas.stream.domain.MyEvent
 import com.rogervinas.stream.domain.MyEventConsumer
 import com.rogervinas.stream.domain.MyEventProducer
+import com.rogervinas.stream.domain.MyRetryableException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,6 +27,7 @@ class MyApplicationShould {
 
     val TOPIC = "my.topic"
     val TEN_SECONDS = Duration.ofSeconds(10)
+    val FIVE = 5
 
     @Autowired
     lateinit var env: Environment
@@ -74,5 +77,18 @@ class MyApplicationShould {
         verify(eventConsumer, timeout(TEN_SECONDS.toMillis())).consume(eventCaptor.capture())
 
         assertThat(eventCaptor.firstValue).satisfies { event -> assertThat(event.text).isEqualTo(text) }
+    }
+
+    @Test
+    fun `retry consume event 5 times`() {
+        val eventCaptor = argumentCaptor<MyEvent>()
+        doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(eventCaptor.capture())
+
+        val text = "hello ${UUID.randomUUID()}"
+        kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
+
+        verify(eventConsumer, timeout(TEN_SECONDS.toMillis()).times(FIVE)).consume(eventCaptor.capture())
+
+        assertThat(eventCaptor.allValues).allSatisfy { event -> assertThat(event.text).isEqualTo(text) }
     }
 }
