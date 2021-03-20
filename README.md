@@ -4,7 +4,12 @@
 
 [Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream) is the solution provided by Spring to build applications connected to shared messaging systems.
 
-It offers an abstraction (the "binding") that works the same whatever underneath implementation we use (the "binder"): Apache Kafka, Rabbit MQ, Kafka Streams, ...
+It offers an abstraction (the **binding**) that works the same whatever underneath implementation we use (the **binder**):
+* **Apache Kafka**
+* **Rabbit MQ**
+* **Kafka Streams**
+* **Amazon Kinesis**
+* ...
 
 As of today there are two ways to configure Spring Cloud Stream:
 * With annotations (legacy since 3.1)
@@ -12,7 +17,7 @@ As of today there are two ways to configure Spring Cloud Stream:
 
 Let's try to setup a simple example step by step and see how it works!
 
-This demo has been created using this [spring initializr configuration](https://start.spring.io/#!type=gradle-project&language=kotlin&platformVersion=2.4.4.RELEASE&packaging=jar&jvmVersion=11&groupId=com.example&artifactId=demo&name=demo&description=Demo%20project%20for%20Spring%20Boot&packageName=com.example.demo&dependencies=cloud-stream,web) adding Kafka binder dependency `org.springframework.cloud:spring-cloud-starter-stream-kafka`.
+This demo has been created using this [spring initializr configuration](https://start.spring.io/#!type=gradle-project&language=kotlin&platformVersion=2.4.4.RELEASE&packaging=jar&jvmVersion=11&groupId=com.example&artifactId=demo&name=demo&description=Demo%20project%20for%20Spring%20Boot&packageName=com.example.demo&dependencies=cloud-stream,web) adding Kafka binder dependency `spring-cloud-starter-stream-kafka`.
 
 Sections:
 * [Producer](#producer)
@@ -30,7 +35,7 @@ Sections:
 
 Being our final goal to produce messages to a Kafka topic ...
 
-From the point of view of the application we want an interface `MyEventProducer` to **produce** events to a generic messaging system. These events will be of type `MyEvent` (just containing a `text` field to make it simpler).
+From the point of view of the application we want an interface `MyEventProducer` to produce events to a generic messaging system. These events will be of type `MyEvent` (just containing a `text` field to make it simpler).
 ```kotlin
 class MyEvent(val text: String)
 
