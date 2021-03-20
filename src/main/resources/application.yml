@@ -8,3 +8,14 @@ logging:
 spring:
   application:
     name: "stream-demo"
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: "localhost:9094"
+      bindings:
+        my-producer:
+          destination: "my.topic"
+        my-consumer:
+          destination: "my.topic"
+          group: "${spring.application.name}"
