@@ -22,8 +22,10 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	implementation("org.springframework.cloud:spring-cloud-stream")
+	implementation("org.springframework.cloud:spring-cloud-starter-stream-kafka")
+	implementation("org.testcontainers:testcontainers:1.15.1")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("com.nhaarman:mockito-kotlin:1.6.0")
 }
 
 dependencyManagement {
