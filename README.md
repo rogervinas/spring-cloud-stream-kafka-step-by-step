@@ -12,6 +12,14 @@ Let's try to setup a simple example step by step and see how it works!
 
 This demo has been created using this [spring initializr configuration](https://start.spring.io/#!type=gradle-project&language=kotlin&platformVersion=2.4.4.RELEASE&packaging=jar&jvmVersion=11&groupId=com.example&artifactId=demo&name=demo&description=Demo%20project%20for%20Spring%20Boot&packageName=com.example.demo&dependencies=cloud-stream,web) adding Kafka binder dependency `org.springframework.cloud:spring-cloud-starter-stream-kafka``.
 
+Sections:
+* [Producer](#producer)
+  * [Producer with annotations (legacy)](#producer-with-annotations-legacy) 
+  * [Producer with functional programming model](#producer-with-functional-programming-model)
+* [Consumer](#consumer)
+  * [Consumer with annotations (legacy)](#consumer-with-annotations-legacy) 
+  * [Consumer with functional programming model](#consumer-with-functional-programming-model)
+
 ## Producer
 
 Being our final goal to produce messages to a Kafka topic ...
