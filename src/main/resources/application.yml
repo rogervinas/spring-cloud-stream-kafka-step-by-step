@@ -1,0 +1,10 @@
+server:
+  port: 8080
+
+logging:
+  level:
+    com.rogervinas: INFO
+
+spring:
+  application:
+    name: "stream-demo"
