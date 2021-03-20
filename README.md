@@ -33,7 +33,7 @@ interface MyEventProducer {
 }
 ```
 
-Then we can first configure the binding using annotations (legacy way) and later we can migrate it to use functional interfaces:
+Then we can first configure the binding using annotations (legacy way) and later we can migrate it to use functional interfaces. Checkout **legacy** tag in this repository if you want to go back to the legacy version.
 
 ### Producer with annotations (legacy)
 
@@ -199,7 +199,7 @@ interface MyEventConsumer {
 }
 ```
 
-Again we can first configure the binding using annotations (legacy way) and later we can migrate it to use functional interfaces:
+Again we can first configure the binding using annotations (legacy way) and later we can migrate it to use functional interfaces. Checkout **legacy** tag in this repository if you want to go back to the legacy version.
 
 ### Consumer with annotations (legacy)
 
