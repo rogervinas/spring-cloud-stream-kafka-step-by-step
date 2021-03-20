@@ -24,6 +24,7 @@ Sections:
 * [Extras](#extras)
   * [Kafka Message Key](#kafka-message-key)
   * [Retries](#retries)
+  * [Dead Letter Queue](#dead-letter-queue)
 
 ## Producer
 
@@ -454,5 +455,82 @@ fun `retry consume event 5 times`() {
     // consumer has been called five times with the same message
     verify(eventConsumer, timeout(TEN_SECONDS.toMillis()).times(FIVE)).consume(eventCaptor.capture())
     assertThat(eventCaptor.allValues).allSatisfy { event -> assertThat(event.text).isEqualTo(text) }
+}
+```
+
+### Dead Letter Queue
+
+Additional to retries, DLQ is another mechanism we can use to deal with consumer errors.
+
+In the case of Kafka it consists of sending to another topic all the messages that the consumer has rejected.
+
+We can configure the DLQ using these [Kafka binder consumer properties](https://github.com/spring-cloud/spring-cloud-stream-binder-kafka#kafka-consumer-properties):
+* **enableDlq**: enable DLQ
+* **dlqName**:
+  * not set: defaults to `error.<destination>.<group>`
+  * set: use a specific DLQ topic
+* **dlqPartitions**:
+  * not set: DLQ topic should have the same number of partitions as the original one
+  * set to 0: DLQ topic should have only 1 partition
+  * set to N>0: we should provide a `DlqPartitionFunction` bean
+
+For example we can use this configuration:
+```yaml
+spring:
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: "localhost:9094"
+        bindings:
+          my-consumer-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: "my.topic.errors"
+              dlq-partitions: 1    
+      bindings:
+        my-consumer-in-0:
+          destination: "my.topic"
+          group: "${spring.application.name}"
+```
+
+And we can test it like this:
+
+* Application errors:
+```kotlin
+@Test
+fun `send to DLQ rejected messages`() {
+    doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(anyOrNull())
+
+    val text = "hello ${UUID.randomUUID()}"
+    kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
+
+    val errorRecords = kafkaDLQConsumerHelper.consumeAtLeast(1, TEN_SECONDS)
+    assertThat(errorRecords)
+            .singleElement().satisfies { record ->
+                JSONAssert.assertEquals(
+                        record.value(),
+                        "{\"number\":${text.length},\"string\":\"$text\"}",
+                        true
+                )
+            }
+}
+```
+
+* Message deserialization errors:
+```kotlin
+@ParameterizedTest
+@ValueSource(strings = [
+    "plain text",
+    "{\"unknownField\":\"not expected\"}"
+])
+fun `send to DLQ undeserializable messages`(body: String) {
+    kafkaProducerHelper.send(TOPIC, body)
+
+    val errorRecords = kafkaDLQConsumerHelper.consumeAtLeast(1, TEN_SECONDS)
+    assertThat(errorRecords)
+            .singleElement().satisfies { record ->
+                assertThat(record.value()).isEqualTo(body)
+            }
 }
 ```

@@ -12,7 +12,7 @@ services:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
       - KAFKA_BROKER_ID=0
       - KAFKA_AUTO_LEADER_REBALANCE_ENABLE=false
-      - KAFKA_CREATE_TOPICS=my.topic:3:1
+      - KAFKA_CREATE_TOPICS=my.topic:3:1,my.topic.errors:1:1
     ports:
       - "9094:9094"
     links:

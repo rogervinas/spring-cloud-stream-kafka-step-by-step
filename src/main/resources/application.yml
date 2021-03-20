@@ -15,6 +15,12 @@ spring:
           brokers: "localhost:9094"
           producer-properties:
             key.serializer: "org.apache.kafka.common.serialization.StringSerializer"
+        bindings:
+          my-consumer-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: "my.topic.errors"
+              dlq-partitions: 1
       bindings:
         my-producer-out-0:
           destination: "my.topic"
