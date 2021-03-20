@@ -29,7 +29,7 @@ Then we can first configure the binding using annotations (legacy way) and later
 
 ### Producer with annotations (legacy)
 
-1) We configure the binding `my-producer` in application.yml:
+#### 1) We configure the binding `my-producer` in application.yml:
 ```yaml
 spring:
   cloud:
@@ -46,7 +46,7 @@ spring:
 
 Now we have to link the binding `my-producer` with our implementation using annotations... ready?
 
-2) We create an interface with a method annotated with `@Output` and returning a `MessageChannel`:
+#### 2) We create an interface with a method annotated with `@Output` and returning a `MessageChannel`:
 ```kotlin
 interface MyProducerBinding {
     @Output("my-producer")
@@ -55,7 +55,7 @@ interface MyProducerBinding {
 ```
 * The only important thing here is to use the name of the biding `my-producer` as the value of the `@Output` annotation.
 
-3) We create an implementation of our `MyEventProducer` using a `MessageChannel`:
+#### 3) We create an implementation of our `MyEventProducer` using a `MessageChannel`:
 ```kotlin
 class MyStreamEventProducer(private val messageChannel: MessageChannel) : MyEventProducer {
 
@@ -78,7 +78,7 @@ class MyEventPayload @JsonCreator constructor(
 * We do a simple transformation between `MyEvent` and `MyEventPayload` just as an example.
 * We use the `MessageChannel` to send the message.
 
-4) Finally, we wire everything together:
+#### 4) We wire everything together:
 ```kotlin
 @EnableBinding(MyProducerBinding::class)
 class MyConfiguration {
@@ -92,7 +92,7 @@ class MyConfiguration {
 * `@EnableBinding` annotation makes Spring to create an instance of `MyProducerBinding` with a `myProducer()` method returning a `MessageChannel` that will be linked to the `my-producer` binding thanks to the `@Output("my-producer")` annotation.
 * Then we create an instance of type `MyEventProducer` that we can use in our code. This instance is implemented by a `MyStreamEventProducer` that will use the `MessageChannel` linked to the `my-producer` binding.
 
-5) We can easily test this starting a Kafka container using [Testcontainers](https://www.testcontainers.org/):
+#### 5) We can easily test this starting a Kafka container using [Testcontainers](https://www.testcontainers.org/):
 
 Check the working test in [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt)
 
@@ -127,7 +127,7 @@ class MyApplicationShould {
 
 ### Producer with functional programming model
 
-1) We configure the binding `my-producer` in application.yml but declaring it as a function:
+#### 1) We configure the binding `my-producer` in application.yml but declaring it as a function:
 ```yaml
 spring:
   cloud:
@@ -143,7 +143,7 @@ spring:
 ```
 * As stated in [Functional binding names](https://docs.spring.io/spring-cloud-stream/docs/3.1.2/reference/html/spring-cloud-stream.html#_functional_binding_names): `my-producer` is the function name, `out` is for output bindings and `0` is the index we have to use if we have a single function.
 
-2) We create an implementation of our `MyEventProducer` as a `Supplier` of `Flux<MyEventPayload>`, to fulfill the interfaces that both our application and Spring Cloud Stream are expecting:
+#### 2) We create an implementation of our `MyEventProducer` as a `Supplier` of `Flux<MyEventPayload>`, to fulfill the interfaces that both our application and Spring Cloud Stream are expecting:
 ```kotlin
 class MyStreamEventProducer : Supplier<Flux<MyEventPayload>>, MyEventProducer {
 
@@ -164,7 +164,7 @@ class MyStreamEventProducer : Supplier<Flux<MyEventPayload>>, MyEventProducer {
 ```
 * The idea is that every time we emit a `MyEventPayload` through the `Flux`, Spring Cloud Stream will publish it to Kafka.
 
-3) Finally, we create an instance of `MyStreamEventProducer` naming it `my-producer` to link it to the function definition:
+#### 3) Finally, we create an instance of `MyStreamEventProducer` naming it `my-producer` to link it to the function definition:
 ```kotlin
 @Configuration
 class MyConfiguration {
@@ -176,7 +176,7 @@ class MyConfiguration {
 }
 ```
 
-4) Same test [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt) should work as well!
+#### 4) Same test [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt) should work as well!
 
 ## Consumer
 
@@ -195,7 +195,7 @@ Again we can first configure the binding using annotations (legacy way) and late
 
 ### Consumer with annotations (legacy)
 
-1) We configure the binding `my-consumer` in application.yml:
+#### 1) We configure the binding `my-consumer` in application.yml:
 ```yaml
 spring:
   cloud:
@@ -213,7 +213,7 @@ spring:
 
 Now we have to link the binding `my-consumer` with our implementation using annotations... ready?
 
-2) We create an interface with a method annotated with `@Input` and returning a `SubscribableChannel`:
+#### 2) We create an interface with a method annotated with `@Input` and returning a `SubscribableChannel`:
 ```kotlin
 interface MyConsumerBinding {
     @Input("my-consumer")
@@ -222,7 +222,7 @@ interface MyConsumerBinding {
 ```
 * The only important thing here is to use the name of the biding `my-consumer` as the value of the `@Input` annotation.
 
-3) We create a class `MyStreamEventConsumer` that will receive `MyEventPayload`, transform to `MyEvent` and redirect to a `MyEventConsumer`:
+#### 3) We create a class `MyStreamEventConsumer` that will receive `MyEventPayload`, transform to `MyEvent` and redirect to a `MyEventConsumer`:
 ```kotlin
 class MyStreamEventConsumer(private val consumer: MyEventConsumer) {
 
@@ -239,7 +239,7 @@ class MyStreamEventConsumer(private val consumer: MyEventConsumer) {
 * `MyStreamEventConsumer` has a method `consume` annotated with `@StreamListener` linking it to the `my-consumer` binding. This means that every time a new message is received in the Kafka topic, its payload will be deserialized to a `MyEventPayload` (applying [Jackson](https://github.com/FasterXML/jackson) annotations) and the `consume` method will we called.
 * Then the only thing we have to do is to tranform the `MyEventPayload` to a `MyEvent` and callback the generic `MyEventConsumer`.
 
-4) Finally, we wire everything together:
+#### 4) Finally, we wire everything together:
 ```kotlin
 @EnableBinding(MyConsumerBinding::class)
 class MyConfiguration {
@@ -263,7 +263,7 @@ class MyConfiguration {
 * We create an instance of type `MyStreamEventConsumer` and its method `consume` annotated with `@StreamListener("my-consumer")` will be linked automatically to the `SubscribableChannel`.
 * Just as an example, we create an instance of type `MyEventConsumer` that justs prints the event.
 
-5) We can easily test this starting a Kafka container using [Testcontainers](https://www.testcontainers.org/):
+#### 5) We can easily test this starting a Kafka container using [Testcontainers](https://www.testcontainers.org/):
    
 Check the working test in [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt)
 
@@ -291,7 +291,7 @@ class MyApplicationShould {
 
 ### Consumer with functional programming model
 
-1) We configure the binding `my-consumer` in application.yml but declaring it as a function:
+#### 1) We configure the binding `my-consumer` in application.yml but declaring it as a function:
 ```yaml
 spring:
   cloud:
@@ -308,7 +308,7 @@ spring:
 ```
 * As stated in [Functional binding names](https://docs.spring.io/spring-cloud-stream/docs/3.1.2/reference/html/spring-cloud-stream.html#_functional_binding_names): `my-consumer` is the function name, `in` is for input bindings and `0` is the index we have to use if we have a single function.
 
-2) We create the same class `MyStreamEventConsumer` but implementing `Consumer<MyEventPayload>` to fulfill the interface required by Spring Cloud Stream:
+#### 2) We create the same class `MyStreamEventConsumer` but implementing `Consumer<MyEventPayload>` to fulfill the interface required by Spring Cloud Stream:
 ```kotlin
 class MyStreamEventConsumer(private val consumer: MyEventConsumer) : Consumer<MyEventPayload> {
 
@@ -324,7 +324,7 @@ class MyStreamEventConsumer(private val consumer: MyEventConsumer) : Consumer<My
 * Every time a new message is received in the Kafka topic, its payload will be deserialized to a `MyEventPayload` (applying [Jackson](https://github.com/FasterXML/jackson) annotations) and the `consume` method will we called.
 * Then the only thing we have to do is to tranform the `MyEventPayload` to a `MyEvent` and callback the generic `MyEventConsumer`.
 
-3) Finally, we create an instance of `MyStreamEventConsumer` naming it `my-consumer` to link it to the function definition:
+#### 3) Finally, we create an instance of `MyStreamEventConsumer` naming it `my-consumer` to link it to the function definition:
 ```kotlin
 @Configuration
 class MyConfiguration {
@@ -346,4 +346,4 @@ class MyConfiguration {
 ```
 * Just as an example, we create an instance of type `MyEventConsumer` that justs prints the event.
 
-4) Same test [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt) should work as well!
+#### 4) Same test [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt) should work as well!
