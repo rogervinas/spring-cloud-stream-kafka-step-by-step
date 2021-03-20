@@ -1,20 +1,20 @@
-package com.rogervinas.stream.legacy
+package com.rogervinas.stream.functional
 
 import com.rogervinas.stream.domain.MyEvent
 import com.rogervinas.stream.domain.MyEventConsumer
 import com.rogervinas.stream.domain.MyEventProducer
-import org.springframework.cloud.stream.annotation.EnableBinding
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
-@EnableBinding(value = [MyProducerBinding::class, MyConsumerBinding::class])
+@Configuration
 class MyConfiguration {
 
-    @Bean
-    fun myStreamEventProducer(binding: MyProducerBinding): MyEventProducer {
-        return MyStreamEventProducer(binding.myProducer())
+    @Bean("my-producer")
+    fun myStreamEventProducer(): MyEventProducer {
+        return MyStreamEventProducer()
     }
 
-    @Bean
+    @Bean("my-consumer")
     fun myStreamEventConsumer(consumer: MyEventConsumer): MyStreamEventConsumer {
         return MyStreamEventConsumer(consumer)
     }

@@ -14,8 +14,10 @@ spring:
         binder:
           brokers: "localhost:9094"
       bindings:
-        my-producer:
+        my-producer-out-0:
           destination: "my.topic"
-        my-consumer:
+        my-consumer-in-0:
           destination: "my.topic"
           group: "${spring.application.name}"
+    function:
+      definition: "my-producer;my-consumer"

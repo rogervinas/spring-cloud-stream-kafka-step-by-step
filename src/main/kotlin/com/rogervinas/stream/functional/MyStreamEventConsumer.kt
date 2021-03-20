@@ -1,14 +1,13 @@
-package com.rogervinas.stream.legacy
+package com.rogervinas.stream.functional
 
 import com.rogervinas.stream.domain.MyEvent
 import com.rogervinas.stream.domain.MyEventConsumer
 import com.rogervinas.stream.shared.MyEventPayload
-import org.springframework.cloud.stream.annotation.StreamListener
+import java.util.function.Consumer
 
-class MyStreamEventConsumer(private val consumer: MyEventConsumer) {
+class MyStreamEventConsumer(private val consumer: MyEventConsumer) : Consumer<MyEventPayload> {
 
-    @StreamListener("my-consumer")
-    fun consume(payload: MyEventPayload) {
+    override fun accept(payload: MyEventPayload) {
         consumer.consume(fromPayload(payload))
     }
 
