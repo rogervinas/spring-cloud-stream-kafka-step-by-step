@@ -30,6 +30,7 @@ In this demo:
   * [Kafka Message Key](#kafka-message-key)
   * [Retries](#retries)
   * [Dead Letter Queue](#dead-letter-queue)
+* [Run](#run)
 
 ## Producer
 
@@ -534,6 +535,33 @@ fun `send to DLQ undeserializable messages`(body: String) {
                 assertThat(record.value()).isEqualTo(body)
             }
 }
+```
+
+## Run
+
+Run with docker-compose:
+```shell
+docker-compose up -d
+./gradlew bootRun
+docker-compose down
+```
+
+Run with testcontainers:
+```shell
+SPRING_PROFILES_ACTIVE=docker-compose ./gradlew bootRun
+```
+
+Then you can use [kafkacat](https://github.com/edenhill/kafkacat) to produce/consume to/from Kafka:
+```shell
+# consume
+kafkacat -b localhost:9094 -C -t my.topic
+kafkacat -b localhost:9094 -C -t my.topic.errors
+
+# produce a valid message
+echo '{"string":"hello!", "number":37}' | kafkacat -b localhost:9094 -P -t my.topic
+
+# produce an invalid message
+echo 'hello!' | kafkacat -b localhost:9094 -P -t my.topic
 ```
 
 That's it! Happy coding!
