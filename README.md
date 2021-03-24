@@ -387,6 +387,18 @@ class MyStreamEventProducer : Supplier<Flux<Message<MyEventPayload>>>, MyEventPr
 }
 ```
 
+As we are setting a key of type `String` we should use a `StringSerializer` as `key.serializer`:
+```
+spring:
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: "localhost:9094"
+          producer-properties:
+            key.serializer: "org.apache.kafka.common.serialization.StringSerializer"
+```
+
 And we can test it like this:
 ```kotlin
 @Test
