@@ -85,12 +85,12 @@ class MyApplicationShould {
 
     @Test
     fun `retry consume event 5 times`() {
-        val eventCaptor = argumentCaptor<MyEvent>()
-        doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(eventCaptor.capture())
+        doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
 
         val text = "hello ${UUID.randomUUID()}"
         kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
+        val eventCaptor = argumentCaptor<MyEvent>()
         verify(eventConsumer, timeout(TEN_SECONDS.toMillis()).times(FIVE)).consume(eventCaptor.capture())
 
         assertThat(eventCaptor.allValues).allSatisfy { event -> assertThat(event.text).isEqualTo(text) }
@@ -98,7 +98,7 @@ class MyApplicationShould {
 
     @Test
     fun `send to DLQ rejected messages`() {
-        doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(anyOrNull())
+        doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
 
         val text = "hello ${UUID.randomUUID()}"
         kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")

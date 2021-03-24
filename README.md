@@ -442,14 +442,14 @@ And we can test it like this:
 @Test
 fun `retry consume event 5 times`() {
     // we throw a MyRetryableException every time we receive a message
-    val eventCaptor = argumentCaptor<MyEvent>()
-    doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(eventCaptor.capture())
+    doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
 
     // we send a Kafka message using a helper
     val text = "hello ${UUID.randomUUID()}"
     kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
     // consumer has been called five times with the same message
+    val eventCaptor = argumentCaptor<MyEvent>()
     verify(eventConsumer, timeout(TEN_SECONDS.toMillis()).times(FIVE)).consume(eventCaptor.capture())
     assertThat(eventCaptor.allValues).allSatisfy { event -> assertThat(event.text).isEqualTo(text) }
 }
@@ -498,7 +498,7 @@ Application errors:
 @Test
 fun `send to DLQ rejected messages`() {
     // we throw a MyRetryableException every time we receive a message
-    doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(anyOrNull())
+    doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
 
     // we send a Kafka message using a helper
     val text = "hello ${UUID.randomUUID()}"
