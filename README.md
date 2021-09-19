@@ -2,7 +2,7 @@
 
 # Spring Cloud Stream step by step
 
-[Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream) is the solution provided by Spring to build applications connected to shared messaging systems.
+[Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream) is the solution provided by **Spring** to build applications connected to shared messaging systems.
 
 It offers an abstraction (the **binding**) that works the same whatever underneath implementation we use (the **binder**):
 * **Apache Kafka**
