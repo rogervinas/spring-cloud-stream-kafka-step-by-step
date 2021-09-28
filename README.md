@@ -1,6 +1,6 @@
-![CI](https://github.com/rogervinas/spring-cloud-stream-step-by-step/actions/workflows/gradle.yml/badge.svg)
+![CI](https://github.com/rogervinas/spring-cloud-stream-kafka-step-by-step/actions/workflows/gradle.yml/badge.svg)
 
-# Spring Cloud Stream step by step
+# Spring Cloud Stream Kafka step by step
 
 [Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream) is the solution provided by **Spring** to build applications connected to shared messaging systems.
 
