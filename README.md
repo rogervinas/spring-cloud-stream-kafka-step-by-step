@@ -1,6 +1,6 @@
 ![CI](https://github.com/rogervinas/spring-cloud-stream-kafka-step-by-step/actions/workflows/gradle.yml/badge.svg)
 
-# Spring Cloud Stream Kafka step by step
+# Spring Cloud Stream & Kafka binder step by step
 
 [Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream) is the solution provided by **Spring** to build applications connected to shared messaging systems.
 
@@ -549,7 +549,15 @@ fun `send to DLQ undeserializable messages`(body: String) {
 }
 ```
 
-## Run
+That's it! Happy coding!
+
+## Test this demo
+
+```shell
+./gradlew test
+```
+
+## Run this demo
 
 Run with docker-compose:
 ```shell
@@ -576,4 +584,8 @@ echo '{"string":"hello!", "number":37}' | kafkacat -b localhost:9094 -P -t my.to
 echo 'hello!' | kafkacat -b localhost:9094 -P -t my.topic
 ```
 
-That's it! Happy coding!
+## See also
+
+:octocat: [Spring Cloud Stream & Kafka Streams Binder first steps](https://github.com/rogervinas/spring-cloud-stream-kafka-streams-first-steps)
+
+:octocat: [Spring Cloud Stream Multibinder](https://github.com/rogervinas/spring-cloud-stream-multibinder)
