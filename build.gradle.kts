@@ -48,12 +48,12 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
-    testLogging {
-        events(PASSED, SKIPPED, FAILED)
-        exceptionFormat = FULL
-        showExceptions = true
-        showCauses = true
-        showStackTraces = true
-    }	
+  useJUnitPlatform()
+  testLogging {
+    events(PASSED, SKIPPED, FAILED)
+    exceptionFormat = FULL
+    showExceptions = true
+    showCauses = true
+    showStackTraces = true
+  }	  
 }
