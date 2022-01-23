@@ -32,6 +32,7 @@ In this demo:
   * [Dead Letter Queue](#dead-letter-queue)
 * [Test this demo](#test-this-demo)
 * [Run this demo](#run-this-demo)
+* [See also](#see-also)
 
 ## Producer
 
@@ -590,3 +591,5 @@ echo 'hello!' | kafkacat -b localhost:9094 -P -t my.topic
 :octocat: [Spring Cloud Stream & Kafka Streams Binder first steps](https://github.com/rogervinas/spring-cloud-stream-kafka-streams-first-steps)
 
 :octocat: [Spring Cloud Stream Multibinder](https://github.com/rogervinas/spring-cloud-stream-multibinder)
+
+:octocat: [Spring Cloud Stream & Kafka Streams Processor](https://github.com/rogervinas/spring-cloud-stream-kafka-streams-processor)
