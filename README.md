@@ -30,7 +30,8 @@ In this demo:
   * [Kafka Message Key](#kafka-message-key)
   * [Retries](#retries)
   * [Dead Letter Queue](#dead-letter-queue)
-* [Run](#run)
+* [Test this demo](#test-this-demo)
+* [Run this demo](#run-this-demo)
 
 ## Producer
 
