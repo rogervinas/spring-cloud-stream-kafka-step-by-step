@@ -31,7 +31,11 @@ This demo has been created using this [spring initializr configuration](https://
   * [Dead Letter Queue](#dead-letter-queue)
 * [Test this demo](#test-this-demo)
 * [Run this demo](#run-this-demo)
-* [See also](#see-also)
+* See also
+  * :octocat: [Spring Cloud Stream & Kafka Streams Binder first steps](https://github.com/rogervinas/spring-cloud-stream-kafka-streams-first-steps)
+  * :octocat: [Spring Cloud Stream & Kafka Confluent Avro Schema Registry](https://github.com/rogervinas/spring-cloud-stream-kafka-confluent-avro-schema-registry)
+  * :octocat: [Spring Cloud Stream Multibinder](https://github.com/rogervinas/spring-cloud-stream-multibinder)
+  * :octocat: [Spring Cloud Stream & Kafka Streams Binder + Processor API](https://github.com/rogervinas/spring-cloud-stream-kafka-streams-processor)
 
 ## Producer
 
@@ -584,11 +588,3 @@ echo '{"string":"hello!", "number":37}' | kafkacat -b localhost:9094 -P -t my.to
 # produce an invalid message
 echo 'hello!' | kafkacat -b localhost:9094 -P -t my.topic
 ```
-
-## See also
-
-:octocat: [Spring Cloud Stream & Kafka Streams Binder first steps](https://github.com/rogervinas/spring-cloud-stream-kafka-streams-first-steps)
-
-:octocat: [Spring Cloud Stream Multibinder](https://github.com/rogervinas/spring-cloud-stream-multibinder)
-
-:octocat: [Spring Cloud Stream & Kafka Streams Binder + Processor API](https://github.com/rogervinas/spring-cloud-stream-kafka-streams-processor)
