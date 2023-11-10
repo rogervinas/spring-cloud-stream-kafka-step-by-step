@@ -16,40 +16,40 @@ import javax.annotation.PreDestroy
 @Profile("docker-compose")
 class MyContainers {
 
-    private val KAFKA = "kafka"
-    private val KAFKA_PORT = 9094
+  private val KAFKA = "kafka"
+  private val KAFKA_PORT = 9094
 
-    private val ZOOKEEPER = "zookeeper"
-    private val ZOOKEEPER_PORT = 2181
+  private val ZOOKEEPER = "zookeeper"
+  private val ZOOKEEPER_PORT = 2181
 
-    private val container = DockerComposeContainer<Nothing>(File("docker-compose.yml"))
-            .apply { withLocalCompose(true) }
-            .apply {
-                withExposedService(KAFKA, KAFKA_PORT, WaitAllStrategy(WITH_INDIVIDUAL_TIMEOUTS_ONLY)
-                        .apply { withStrategy(forListeningPortFixDockerDesktop322()) }
-                        .apply { withStrategy(forLogMessage(".*creating topics.*", 1)) }
-                )
-            }
-            .apply {
-                withExposedService(ZOOKEEPER, ZOOKEEPER_PORT, WaitAllStrategy(WITH_INDIVIDUAL_TIMEOUTS_ONLY)
-                        .apply { withStrategy(forListeningPortFixDockerDesktop322()) }
-                        .apply { withStrategy(forLogMessage(".*binding to port.*", 1)) }
-                )
-            }
+  private val container = DockerComposeContainer<Nothing>(File("docker-compose.yml"))
+    .apply { withLocalCompose(true) }
+    .apply {
+      withExposedService(KAFKA, KAFKA_PORT, WaitAllStrategy(WITH_INDIVIDUAL_TIMEOUTS_ONLY)
+        .apply { withStrategy(forListeningPortFixDockerDesktop322()) }
+        .apply { withStrategy(forLogMessage(".*creating topics.*", 1)) }
+      )
+    }
+    .apply {
+      withExposedService(ZOOKEEPER, ZOOKEEPER_PORT, WaitAllStrategy(WITH_INDIVIDUAL_TIMEOUTS_ONLY)
+        .apply { withStrategy(forListeningPortFixDockerDesktop322()) }
+        .apply { withStrategy(forLogMessage(".*binding to port.*", 1)) }
+      )
+    }
 
-    private fun forListeningPortFixDockerDesktop322() = HostPortWaitStrategyFixDockerDesktop322()
+  private fun forListeningPortFixDockerDesktop322() = HostPortWaitStrategyFixDockerDesktop322()
 
-    @PostConstruct
-    fun start() = container.start()
+  @PostConstruct
+  fun start() = container.start()
 
-    @PreDestroy
-    fun stop() = container.stop()
+  @PreDestroy
+  fun stop() = container.stop()
 }
 
 class HostPortWaitStrategyFixDockerDesktop322 : HostPortWaitStrategy() {
-    override fun getLivenessCheckPorts(): MutableSet<Int> {
-        return super.getLivenessCheckPorts().stream()
-                .filter { port -> port > 0 }
-                .collect(Collectors.toSet())
-    }
+  override fun getLivenessCheckPorts(): MutableSet<Int> {
+    return super.getLivenessCheckPorts().stream()
+      .filter { port -> port > 0 }
+      .collect(Collectors.toSet())
+  }
 }

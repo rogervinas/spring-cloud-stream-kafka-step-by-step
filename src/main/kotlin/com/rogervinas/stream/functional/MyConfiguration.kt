@@ -9,22 +9,22 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class MyConfiguration {
 
-    @Bean("my-producer")
-    fun myStreamEventProducer(): MyEventProducer {
-        return MyStreamEventProducer()
-    }
+  @Bean("my-producer")
+  fun myStreamEventProducer(): MyEventProducer {
+    return MyStreamEventProducer()
+  }
 
-    @Bean("my-consumer")
-    fun myStreamEventConsumer(consumer: MyEventConsumer): MyStreamEventConsumer {
-        return MyStreamEventConsumer(consumer)
-    }
+  @Bean("my-consumer")
+  fun myStreamEventConsumer(consumer: MyEventConsumer): MyStreamEventConsumer {
+    return MyStreamEventConsumer(consumer)
+  }
 
-    @Bean
-    fun myEventConsumer(): MyEventConsumer {
-        return object : MyEventConsumer {
-            override fun consume(event: MyEvent) {
-                println("Received ${event.text}")
-            }
-        }
+  @Bean
+  fun myEventConsumer(): MyEventConsumer {
+    return object : MyEventConsumer {
+      override fun consume(event: MyEvent) {
+        println("Received ${event.text}")
+      }
     }
+  }
 }

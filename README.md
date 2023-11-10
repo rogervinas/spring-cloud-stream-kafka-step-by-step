@@ -72,24 +72,24 @@ spring:
 ### 2) We create an implementation of `MyEventProducer` as a `Supplier` of `Flux<MyEventPayload>`, to fulfill the interfaces that both our application and Spring Cloud Stream are expecting:
 ```kotlin
 class MyStreamEventProducer : Supplier<Flux<MyEventPayload>>, MyEventProducer {
-    val sink = Sinks.many().unicast().onBackpressureBuffer<MyEventPayload>()
+  val sink = Sinks.many().unicast().onBackpressureBuffer<MyEventPayload>()
 
-    override fun produce(event: MyEvent) {
-        sink.emitNext(toPayload(event), FAIL_FAST)
-    }
+  override fun produce(event: MyEvent) {
+    sink.emitNext(toPayload(event), FAIL_FAST)
+  }
 
-    override fun get(): Flux<MyEventPayload> {
-        return sink.asFlux()
-    }
+  override fun get(): Flux<MyEventPayload> {
+    return sink.asFlux()
+  }
 
-    private fun toPayload(event: MyEvent): MyEventPayload {
-        return MyEventPayload(event.text, event.text.length)
-    }
+  private fun toPayload(event: MyEvent): MyEventPayload {
+    return MyEventPayload(event.text, event.text.length)
+  }
 }
 
 class MyEventPayload @JsonCreator constructor(
-    @JsonProperty("string") val string: String,
-    @JsonProperty("number") val number: Int
+  @JsonProperty("string") val string: String,
+  @JsonProperty("number") val number: Int
 )
 ```
 * We use a DTO `MyEventPayload` to specify how do we want the payload to be serialized to JSON (using [Jackson](https://github.com/FasterXML/jackson) annotations).
@@ -99,11 +99,11 @@ class MyEventPayload @JsonCreator constructor(
 ### 3) Finally, we create an instance of `MyStreamEventProducer` naming it `my-producer` to link it to the function definition:
 ```kotlin
 @Configuration
-class MyConfiguration {
-    @Bean("my-producer")
-    fun myStreamEventProducer(): MyEventProducer {
-        return MyStreamEventProducer()
-    }
+class MyConfiguration { 
+  @Bean("my-producer")
+  fun myStreamEventProducer(): MyEventProducer {
+    return MyStreamEventProducer()
+  }
 }
 ```
 
@@ -111,28 +111,27 @@ class MyConfiguration {
 ```kotlin
 @SpringBootTest
 class MyApplicationShould {
-    // we inject MyEventProducer (it should be a MyStreamEventProducer)
-    @Autowired lateinit var eventProducer: MyEventProducer
+  // we inject MyEventProducer (it should be a MyStreamEventProducer)
+  @Autowired lateinit var eventProducer: MyEventProducer
     
-    @Test
-    fun `produce event`() {
-        // we produce using MyEventProducer
-        val text = "hello ${UUID.randomUUID()}"
-        eventProducer.produce(MyEvent(text))
+  @Test
+  fun `produce event`() {
+    // we produce using MyEventProducer
+    val text = "hello ${UUID.randomUUID()}"
+    eventProducer.produce(MyEvent(text))
 
-        // we consume from Kafka using a helper
-        val records = consumerHelper.consumeAtLeast(1, FIVE_SECONDS)
+    // we consume from Kafka using a helper
+    val records = consumerHelper.consumeAtLeast(1, FIVE_SECONDS)
 
-        // we verify the received json
-        assertThat(records)
-                .singleElement().satisfies { record ->
-                    JSONAssert.assertEquals(
-                            record.value(),
-                            "{\"number\":${text.length},\"string\":\"$text\"}",
-                            true
-                    )
-                }
+    // we verify the received json
+    assertThat(records).singleElement().satisfies { record ->
+      JSONAssert.assertEquals(
+        record.value(),
+        "{\"number\":${text.length},\"string\":\"$text\"}",
+        true
+      )
     }
+  }
 }
 ```
 * Check the complete test in [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt).
@@ -146,7 +145,7 @@ From the point of view of the application we want an interface `MyEventConsumer`
 class MyEvent(val text: String)
 
 interface MyEventConsumer {
-    fun consume(event: MyEvent)
+  fun consume(event: MyEvent)
 }
 ```
 
@@ -174,13 +173,13 @@ spring:
 ### 2) We create the same class `MyStreamEventConsumer` but implementing `Consumer<MyEventPayload>` to fulfill the interface required by Spring Cloud Stream:
 ```kotlin
 class MyStreamEventConsumer(private val consumer: MyEventConsumer) : Consumer<MyEventPayload> {
-   override fun accept(payload: MyEventPayload) {
-      consumer.consume(fromPayload(payload))
-   }
+  override fun accept(payload: MyEventPayload) {
+    consumer.consume(fromPayload(payload))
+  }
 
-   private fun fromPayload(payload: MyEventPayload): MyEvent {
-      return MyEvent(payload.string)
-   }
+  private fun fromPayload(payload: MyEventPayload): MyEvent {
+    return MyEvent(payload.string)
+  }
 }
 ```
 * Every time a new message is received in the Kafka topic, its payload will be deserialized to a `MyEventPayload` (applying [Jackson](https://github.com/FasterXML/jackson) annotations) and the `consume` method will we called.
@@ -190,19 +189,19 @@ class MyStreamEventConsumer(private val consumer: MyEventConsumer) : Consumer<My
 ```kotlin
 @Configuration
 class MyConfiguration {
-   @Bean("my-consumer")
-   fun myStreamEventConsumer(consumer: MyEventConsumer): MyStreamEventConsumer {
-      return MyStreamEventConsumer(consumer)
-   }
-
-   @Bean
-   fun myEventConsumer(): MyEventConsumer {
-      return object : MyEventConsumer {
-         override fun consume(event: MyEvent) {
-            println("Received ${event.text}")
-         }
+  @Bean("my-consumer")
+  fun myStreamEventConsumer(consumer: MyEventConsumer): MyStreamEventConsumer {
+    return MyStreamEventConsumer(consumer)
+  }
+  
+  @Bean
+  fun myEventConsumer(): MyEventConsumer {
+    return object : MyEventConsumer {
+      override fun consume(event: MyEvent) {
+        println("Received ${event.text}")
       }
-   }
+    }
+  }
 }
 ```
 * We create a simple implementation of `MyEventConsumer` that justs prints the event.
@@ -211,21 +210,23 @@ class MyConfiguration {
 ```kotlin
 @SpringBootTest
 class MyApplicationShould {
-    // we mock MyEventConsumer
-    @MockBean lateinit var eventConsumer: MyEventConsumer
+  // we mock MyEventConsumer
+  @MockBean lateinit var eventConsumer: MyEventConsumer
 
-   @Test
-   fun `consume event`() {
-      // we send a Kafka message using a helper
-      val text = "hello ${UUID.randomUUID()}"
-      kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
+ @Test
+ fun `consume event`() {
+    // we send a Kafka message using a helper
+    val text = "hello ${UUID.randomUUID()}"
+    kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
-      // we wait at most 5 seconds to receive the expected MyEvent in the MyEventConsumer mock
-      val eventCaptor = argumentCaptor<MyEvent>()
-      verify(eventConsumer, timeout(FIVE_SECONDS.toMillis())).consume(eventCaptor.capture())
+    // we wait at most 5 seconds to receive the expected MyEvent in the MyEventConsumer mock
+    val eventCaptor = argumentCaptor<MyEvent>()
+    verify(eventConsumer, timeout(FIVE_SECONDS.toMillis())).consume(eventCaptor.capture())
 
-      assertThat(eventCaptor.firstValue).satisfies { event -> assertThat(event.text).isEqualTo(text) }
-   }
+    assertThat(eventCaptor.firstValue).satisfies { event -> 
+      assertThat(event.text).isEqualTo(text) 
+    }
+ }
 }
 ```
 * Check the complete test in [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt).
@@ -246,9 +247,9 @@ class MyStreamEventProducer : Supplier<Flux<Message<MyEventPayload>>>, MyEventPr
   // ...
   override fun produce(event: MyEvent) {
     val message = MessageBuilder
-            .withPayload(MyEventPayload(event.text, event.text.length))
-            .setHeader(KafkaHeaders.MESSAGE_KEY, "key-${event.text.length}")
-            .build()
+      .withPayload(MyEventPayload(event.text, event.text.length))
+      .setHeader(KafkaHeaders.MESSAGE_KEY, "key-${event.text.length}")
+      .build()
     sink.emitNext(message, FAIL_FAST)
   }
   // ...
@@ -256,7 +257,7 @@ class MyStreamEventProducer : Supplier<Flux<Message<MyEventPayload>>>, MyEventPr
 ```
 
 As we are setting a key of type `String` we should use a `StringSerializer` as `key.serializer`:
-```
+```yaml
 spring:
   cloud:
     stream:
@@ -271,23 +272,22 @@ And we can test it like this:
 ```kotlin
 @Test
 fun `produce event`() {
-    val text = "hello ${UUID.randomUUID()}"
-    eventProducer.produce(MyEvent(text))
-
-    val records = kafkaConsumerHelper.consumeAtLeast(1, TEN_SECONDS)
-
-    assertThat(records)
-            .singleElement().satisfies { record ->
-                // check the message payload
-                JSONAssert.assertEquals(
-                        record.value(),
-                        "{\"number\":${text.length},\"string\":\"$text\"}",
-                        true
-                )
-                // check the message key
-                assertThat(record.key())
-                        .isEqualTo("key-${text.length}")
-            }
+  val text = "hello ${UUID.randomUUID()}"
+  eventProducer.produce(MyEvent(text))
+  
+  val records = kafkaConsumerHelper.consumeAtLeast(1, TEN_SECONDS)
+  
+  assertThat(records).singleElement().satisfies { record ->
+    // check the message payload
+    JSONAssert.assertEquals(
+      record.value(),
+      "{\"number\":${text.length},\"string\":\"$text\"}",
+      true
+    )
+    // check the message key
+    assertThat(record.key())
+      .isEqualTo("key-${text.length}")
+  }
 }
 ```
 * Alternatively we can use `partitionKeyExpression` and other related [binding producer properties](https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#_producer_properties) to achieve the same but at the binding abstraction level of Spring Cloud Stream.
@@ -320,17 +320,19 @@ And we can test it like this:
 ```kotlin
 @Test
 fun `retry consume event 5 times`() {
-    // we throw a MyRetryableException every time we receive a message
-    doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
+  // we throw a MyRetryableException every time we receive a message
+  doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
 
-    // we send a Kafka message using a helper
-    val text = "hello ${UUID.randomUUID()}"
-    kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
+  // we send a Kafka message using a helper
+  val text = "hello ${UUID.randomUUID()}"
+  kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
-    // consumer has been called five times with the same message
-    val eventCaptor = argumentCaptor<MyEvent>()
-    verify(eventConsumer, timeout(TEN_SECONDS.toMillis()).times(FIVE)).consume(eventCaptor.capture())
-    assertThat(eventCaptor.allValues).allSatisfy { event -> assertThat(event.text).isEqualTo(text) }
+  // consumer has been called five times with the same message
+  val eventCaptor = argumentCaptor<MyEvent>()
+  verify(eventConsumer, timeout(TEN_SECONDS.toMillis()).times(FIVE)).consume(eventCaptor.capture())
+  assertThat(eventCaptor.allValues).allSatisfy { event -> 
+    assertThat(event.text).isEqualTo(text) 
+  }
 }
 ```
 
@@ -376,23 +378,22 @@ Application errors:
 ```kotlin
 @Test
 fun `send to DLQ rejected messages`() {
-    // we throw a MyRetryableException every time we receive a message
-    doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
+  // we throw a MyRetryableException every time we receive a message
+  doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
 
-    // we send a Kafka message using a helper
-    val text = "hello ${UUID.randomUUID()}"
-    kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
+  // we send a Kafka message using a helper
+  val text = "hello ${UUID.randomUUID()}"
+  kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
-    // we check the message has been sent to the DLQ
-    val errorRecords = kafkaDLQConsumerHelper.consumeAtLeast(1, TEN_SECONDS)
-    assertThat(errorRecords)
-            .singleElement().satisfies { record ->
-                JSONAssert.assertEquals(
-                        record.value(),
-                        "{\"number\":${text.length},\"string\":\"$text\"}",
-                        true
-                )
-            }
+  // we check the message has been sent to the DLQ
+  val errorRecords = kafkaDLQConsumerHelper.consumeAtLeast(1, TEN_SECONDS)
+  assertThat(errorRecords).singleElement().satisfies { record ->
+    JSONAssert.assertEquals(
+      record.value(),
+      "{\"number\":${text.length},\"string\":\"$text\"}",
+      true
+    )
+  }
 }
 ```
 
@@ -400,19 +401,18 @@ Message deserialization errors:
 ```kotlin
 @ParameterizedTest
 @ValueSource(strings = [
-    "plain text",
-    "{\"unknownField\":\"not expected\"}"
+  "plain text",
+  "{\"unknownField\":\"not expected\"}"
 ])
 fun `send to DLQ undeserializable messages`(body: String) {
-    // we send a Kafka message with an invalid body using a helper
-    kafkaProducerHelper.send(TOPIC, body)
+  // we send a Kafka message with an invalid body using a helper
+  kafkaProducerHelper.send(TOPIC, body)
 
-    // we check the message has been sent to the DLQ
-    val errorRecords = kafkaDLQConsumerHelper.consumeAtLeast(1, TEN_SECONDS)
-    assertThat(errorRecords)
-            .singleElement().satisfies { record ->
-                assertThat(record.value()).isEqualTo(body)
-            }
+  // we check the message has been sent to the DLQ
+  val errorRecords = kafkaDLQConsumerHelper.consumeAtLeast(1, TEN_SECONDS)
+  assertThat(errorRecords).singleElement().satisfies { record ->
+    assertThat(record.value()).isEqualTo(body)
+  }
 }
 ```
 
