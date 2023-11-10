@@ -439,15 +439,15 @@ Run with testcontainers:
 SPRING_PROFILES_ACTIVE=docker-compose ./gradlew bootRun
 ```
 
-Then you can use [kafkacat](https://github.com/edenhill/kafkacat) to produce/consume to/from Kafka:
+Then you can use [kcat](https://github.com/edenhill/kcat) to produce/consume to/from Kafka:
 ```shell
 # consume
-kafkacat -b localhost:9094 -C -t my.topic
-kafkacat -b localhost:9094 -C -t my.topic.errors
+kcat -b localhost:9094 -C -t my.topic
+kcat -b localhost:9094 -C -t my.topic.errors
 
 # produce a valid message
-echo '{"string":"hello!", "number":37}' | kafkacat -b localhost:9094 -P -t my.topic
+echo '{"string":"hello!", "number":37}' | kcat -b localhost:9094 -P -t my.topic
 
 # produce an invalid message
-echo 'hello!' | kafkacat -b localhost:9094 -P -t my.topic
+echo 'hello!' | kcat -b localhost:9094 -P -t my.topic
 ```
