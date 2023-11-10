@@ -11,10 +11,6 @@ import reactor.core.publisher.Flux
 @Configuration
 class MyConfiguration {
 
-  @Bean("my-consumer")
-  fun myStreamEventConsumerFunction(consumer: MyEventConsumer): (MyEventPayload) -> Unit =
-    MyStreamEventConsumer(consumer)
-
   @Bean
   fun myEventConsumer() = object : MyEventConsumer {
     override fun consume(event: MyEvent) {
@@ -22,10 +18,14 @@ class MyConfiguration {
     }
   }
 
-  @Bean("my-producer")
-  fun myStreamEventProducerFunction(producer: MyStreamEventProducer): () -> Flux<Message<MyEventPayload>> =
-    producer::get
+  @Bean("my-consumer")
+  fun myStreamEventConsumerFunction(consumer: MyEventConsumer): (MyEventPayload) -> Unit =
+    MyStreamEventConsumer(consumer)
 
   @Bean
   fun myStreamEventProducer() = MyStreamEventProducer()
+
+  @Bean("my-producer")
+  fun myStreamEventProducerFunction(producer: MyStreamEventProducer): () -> Flux<Message<MyEventPayload>> =
+    producer::get
 }
