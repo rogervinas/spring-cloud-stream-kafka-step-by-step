@@ -14,10 +14,6 @@ It offers an abstraction (the **binding**) that works the same whatever undernea
 * **Amazon Kinesis**
 * ...
 
-As of today there are two ways to configure Spring Cloud Stream:
-* With annotations (legacy since 3.1)
-* With functional programming model
-
 Let's try to setup a simple example step by step and see how it works!
 
 This demo has been created using this [spring initializr configuration](https://start.spring.io/#!type=gradle-project&language=kotlin&platformVersion=2.4.4.RELEASE&packaging=jar&jvmVersion=11&groupId=com.example&artifactId=demo&name=demo&description=Demo%20project%20for%20Spring%20Boot&packageName=com.example.demo&dependencies=cloud-stream,web) adding Kafka binder dependency `spring-cloud-starter-stream-kafka`.
@@ -34,11 +30,14 @@ This demo has been created using this [spring initializr configuration](https://
   * [Dead Letter Queue](#dead-letter-queue)
 * [Test this demo](#test-this-demo)
 * [Run this demo](#run-this-demo)
-* See also
+* See also:
   * :octocat: [Spring Cloud Stream & Kafka Confluent Avro Schema Registry](https://github.com/rogervinas/spring-cloud-stream-kafka-confluent-avro-schema-registry)
   * :octocat: [Spring Cloud Stream & Kafka Streams Binder first steps](https://github.com/rogervinas/spring-cloud-stream-kafka-streams-first-steps)
   * :octocat: [Spring Cloud Stream Multibinder](https://github.com/rogervinas/spring-cloud-stream-multibinder)
   * :octocat: [Spring Cloud Stream & Kafka Streams Binder + Processor API](https://github.com/rogervinas/spring-cloud-stream-kafka-streams-processor)
+
+You can browse older versions of this repo:
+* [Spring 2.x with annotations](/tree/legacy) (legacy since spring-cloud-stream:3.1)
 
 ## Producer
 
