@@ -18,12 +18,8 @@ Let's try to setup a simple example step by step and see how it works!
 
 This demo has been created using this [spring initializr configuration](https://start.spring.io/#!type=gradle-project&language=kotlin&platformVersion=2.4.4.RELEASE&packaging=jar&jvmVersion=11&groupId=com.example&artifactId=demo&name=demo&description=Demo%20project%20for%20Spring%20Boot&packageName=com.example.demo&dependencies=cloud-stream,web) adding Kafka binder dependency `spring-cloud-starter-stream-kafka`.
 
-* [Producer](#producer)
-  * [Producer with annotations (legacy)](#producer-with-annotations-legacy) 
-  * [Producer with functional programming model](#producer-with-functional-programming-model)
-* [Consumer](#consumer)
-  * [Consumer with annotations (legacy)](#consumer-with-annotations-legacy) 
-  * [Consumer with functional programming model](#consumer-with-functional-programming-model)
+* [Producer with functional programming model](#producer-with-functional-programming-model)
+* [Consumer with functional programming model](#consumer-with-functional-programming-model)
 * [Extras](#extras)
   * [Kafka Message Key](#kafka-message-key)
   * [Retries](#retries)
@@ -39,7 +35,7 @@ This demo has been created using this [spring initializr configuration](https://
 You can browse older versions of this repo:
 * [Spring 2.x with legacy annotations](https://github.com/rogervinas/spring-cloud-stream-kafka-step-by-step/tree/spring-2.x-legacy-annotations) (deprecated since spring-cloud-stream:3.1)
 
-## Producer
+## Producer with functional programming model
 
 Our final goal is to produce messages to a Kafka topic.
 
@@ -52,11 +48,9 @@ interface MyEventProducer {
 }
 ```
 
-We can first configure the binding using annotations (legacy way) and later we can change it to use functional interfaces. Checkout **legacy** tag in this repository if you want to go back to the legacy version.
+These are the steps to follow:
 
-### Producer with annotations (legacy)
-
-#### 1) We configure the binding `my-producer` in application.yml:
+### 1) We configure the binding `my-producer` in application.yml:
 ```yaml
 spring:
   cloud:
@@ -65,30 +59,26 @@ spring:
         binder:
           brokers: "localhost:9094"
       bindings:
-        my-producer:
+        my-producer-out-0:
           destination: "my.topic"
+    function:
+      definition: "my-producer"
 ``` 
-Everything under `spring.cloud.kafka.binder` is related to the Kafka binder implementation and we can use all these extra [Kafka binder properties](https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/3.1.1/reference/html/spring-cloud-stream-binder-kafka.html#_kafka_binder_properties).
+* Everything under `spring.cloud.kafka.binder` is related to the Kafka binder implementation and we can use all these extra [Kafka binder properties](https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/3.1.1/reference/html/spring-cloud-stream-binder-kafka.html#_kafka_binder_properties).
+* Everything under `spring.cloud.stream.bindings` is related to the Spring Cloud Stream binding abstraction and we can use all these extra [binding properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#binding-properties).
+* As stated in [functional binding names](https://docs.spring.io/spring-cloud-stream/docs/3.1.2/reference/html/spring-cloud-stream.html#_functional_binding_names): `my-producer` is the function name, `out` is for output bindings and `0` is the index we have to use if we have a single function.
 
-Everything under `spring.cloud.stream.bindings` is related to the Spring Cloud Stream binding abstraction and we can use all these extra [binding properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#binding-properties).
-
-Now we have to link the binding `my-producer` with our implementation using annotations... ready?
-
-#### 2) We create an interface with a method annotated with `@Output` and returning a `MessageChannel`:
+### 2) We create an implementation of `MyEventProducer` as a `Supplier` of `Flux<MyEventPayload>`, to fulfill the interfaces that both our application and Spring Cloud Stream are expecting:
 ```kotlin
-interface MyProducerBinding {
-    @Output("my-producer")
-    fun myProducer(): MessageChannel
-}
-```
-We use the name of the binding `my-producer` as the value of the `@Output` annotation.
+class MyStreamEventProducer : Supplier<Flux<MyEventPayload>>, MyEventProducer {
+    val sink = Sinks.many().unicast().onBackpressureBuffer<MyEventPayload>()
 
-#### 3) We create an implementation of `MyEventProducer` using a `MessageChannel`:
-```kotlin
-class MyStreamEventProducer(private val messageChannel: MessageChannel) : MyEventProducer {
     override fun produce(event: MyEvent) {
-        val message = MessageBuilder.createMessage(toPayload(event), MessageHeaders(emptyMap()))
-        messageChannel.send(message)
+        sink.emitNext(toPayload(event), FAIL_FAST)
+    }
+
+    override fun get(): Flux<MyEventPayload> {
+        return sink.asFlux()
     }
 
     private fun toPayload(event: MyEvent): MyEventPayload {
@@ -97,31 +87,26 @@ class MyStreamEventProducer(private val messageChannel: MessageChannel) : MyEven
 }
 
 class MyEventPayload @JsonCreator constructor(
-        @JsonProperty("string") val string: String,
-        @JsonProperty("number") val number: Int
+    @JsonProperty("string") val string: String,
+    @JsonProperty("number") val number: Int
 )
 ```
-We use a DTO `MyEventPayload` to specify how do we want the payload to be serialized to JSON (using [Jackson](https://github.com/FasterXML/jackson) annotations).
+* We use a DTO `MyEventPayload` to specify how do we want the payload to be serialized to JSON (using [Jackson](https://github.com/FasterXML/jackson) annotations).
+* We do a simple transformation between `MyEvent` and `MyEventPayload` just as an example.
+* Every time we emit a `MyEventPayload` through the `Flux`, Spring Cloud Stream will publish it to Kafka.
 
-We do a simple transformation between `MyEvent` and `MyEventPayload` just as an example.
-
-We use the `MessageChannel` to send the message.
-
-#### 4) We wire everything together:
+### 3) Finally, we create an instance of `MyStreamEventProducer` naming it `my-producer` to link it to the function definition:
 ```kotlin
-@EnableBinding(MyProducerBinding::class)
+@Configuration
 class MyConfiguration {
-    @Bean
-    fun myStreamEventProducer(binding: MyProducerBinding): MyEventProducer {
-        return MyStreamEventProducer(binding.myProducer())
+    @Bean("my-producer")
+    fun myStreamEventProducer(): MyEventProducer {
+        return MyStreamEventProducer()
     }
 }
 ```
-`@EnableBinding` annotation makes Spring to create an instance of `MyProducerBinding` with a `myProducer()` method returning a `MessageChannel` that will be linked to the `my-producer` binding thanks to the `@Output("my-producer")` annotation.
 
-Then we create an instance of type `MyEventProducer` that we can use in our code. This instance is implemented by a `MyStreamEventProducer` that will use the `MessageChannel` linked to the `my-producer` binding.
-
-#### 5) For testing we start a Kafka container using [Testcontainers](https://www.testcontainers.org/):
+### 4) For testing we start a Kafka container using [Testcontainers](https://www.testcontainers.org/):
 ```kotlin
 @SpringBootTest
 class MyApplicationShould {
@@ -149,60 +134,9 @@ class MyApplicationShould {
     }
 }
 ```
-Check the complete test in [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt).
+* Check the complete test in [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt).
 
-### Producer with functional programming model
-
-#### 1) We configure the binding `my-producer` in application.yml but declaring it as a function:
-```yaml
-spring:
-  cloud:
-    stream:
-      kafka:
-        binder:
-          brokers: "localhost:9094"
-      bindings:
-        my-producer-out-0:
-          destination: "my.topic"
-    function:
-      definition: "my-producer"
-```
-As stated in [functional binding names](https://docs.spring.io/spring-cloud-stream/docs/3.1.2/reference/html/spring-cloud-stream.html#_functional_binding_names): `my-producer` is the function name, `out` is for output bindings and `0` is the index we have to use if we have a single function.
-
-#### 2) We create an implementation of `MyEventProducer` as a `Supplier` of `Flux<MyEventPayload>`, to fulfill the interfaces that both our application and Spring Cloud Stream are expecting:
-```kotlin
-class MyStreamEventProducer : Supplier<Flux<MyEventPayload>>, MyEventProducer {
-    val sink = Sinks.many().unicast().onBackpressureBuffer<MyEventPayload>()
-
-    override fun produce(event: MyEvent) {
-        sink.emitNext(toPayload(event), FAIL_FAST)
-    }
-
-    override fun get(): Flux<MyEventPayload> {
-        return sink.asFlux()
-    }
-
-    private fun toPayload(event: MyEvent): MyEventPayload {
-        return MyEventPayload(event.text, event.text.length)
-    }
-}
-```
-Every time we emit a `MyEventPayload` through the `Flux`, Spring Cloud Stream will publish it to Kafka.
-
-#### 3) Finally, we create an instance of `MyStreamEventProducer` naming it `my-producer` to link it to the function definition:
-```kotlin
-@Configuration
-class MyConfiguration {
-    @Bean("my-producer")
-    fun myStreamEventProducer(): MyEventProducer {
-        return MyStreamEventProducer()
-    }
-}
-```
-
-#### 4) Test [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt) should work the same!
-
-## Consumer
+## Consumer with functional programming model
 
 Our final goal is to consume messages from a Kafka topic.
 
@@ -215,11 +149,7 @@ interface MyEventConsumer {
 }
 ```
 
-Again we can first configure the binding using annotations (legacy way) and later we can change it to use functional interfaces. Checkout **legacy** tag in this repository if you want to go back to the legacy version.
-
-### Consumer with annotations (legacy)
-
-#### 1) We configure the binding `my-consumer` in application.yml:
+### 1) We configure the binding `my-consumer` in application.yml but declaring it as a function:
 ```yaml
 spring:
   cloud:
@@ -228,30 +158,20 @@ spring:
         binder:
           brokers: "localhost:9094"
       bindings:
-        my-consumer:
+        my-consumer-in-0:
           destination: "my.topic"
           group: "${spring.application.name}"
-``` 
-Remember that everything under `spring.cloud.kafka.binder` is related to the Kafka binder implementation and we can use all these extra [Kafka binder properties](https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/3.1.1/reference/html/spring-cloud-stream-binder-kafka.html#_kafka_binder_properties) and everything under `spring.cloud.stream.bindings` is related to the Spring Cloud Stream binding abstraction and we can use all these extra [binding properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#binding-properties).
-
-We configure a `group` because we want the application to consume from Kafka identifiying itself as a consumer group so if there were to be more than one instance of the application every message will be delivered to only one of the instances. 
-
-Now we have to link the binding `my-consumer` with our implementation using annotations... ready?
-
-#### 2) We create an interface with a method annotated with `@Input` and returning a `SubscribableChannel`:
-```kotlin
-interface MyConsumerBinding {
-    @Input("my-consumer")
-    fun myConsumer(): SubscribableChannel
-}
+    function:
+      definition: "my-consumer"
 ```
-We use the name of the binding `my-consumer` as the value of the `@Input` annotation.
+* Remember that everything under `spring.cloud.kafka.binder` is related to the Kafka binder implementation and we can use all these extra [Kafka binder properties](https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/3.1.1/reference/html/spring-cloud-stream-binder-kafka.html#_kafka_binder_properties) and everything under `spring.cloud.stream.bindings` is related to the Spring Cloud Stream binding abstraction and we can use all these extra [binding properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#binding-properties).
+* We configure a `group` because we want the application to consume from Kafka identifiying itself as a consumer group so if there were to be more than one instance of the application every message will be delivered to only one of the instances. 
+* As stated in [functional binding names](https://docs.spring.io/spring-cloud-stream/docs/3.1.2/reference/html/spring-cloud-stream.html#_functional_binding_names): `my-consumer` is the function name, `in` is for input bindings and `0` is the index we have to use if we have a single function.
 
-#### 3) We create a class `MyStreamEventConsumer` that will receive `MyEventPayload`, transform to `MyEvent` and redirect to a `MyEventConsumer`:
+### 2) We create the same class `MyStreamEventConsumer` but implementing `Consumer<MyEventPayload>` to fulfill the interface required by Spring Cloud Stream:
 ```kotlin
-class MyStreamEventConsumer(private val consumer: MyEventConsumer) {
-   @StreamListener("my-consumer")
-   fun consume(payload: MyEventPayload) {
+class MyStreamEventConsumer(private val consumer: MyEventConsumer) : Consumer<MyEventPayload> {
+   override fun accept(payload: MyEventPayload) {
       consumer.consume(fromPayload(payload))
    }
 
@@ -260,14 +180,14 @@ class MyStreamEventConsumer(private val consumer: MyEventConsumer) {
    }
 }
 ```
-* `MyStreamEventConsumer` has a method `consume` annotated with `@StreamListener` linking it to the `my-consumer` binding. This means that every time a new message is received in the Kafka topic, its payload will be deserialized to a `MyEventPayload` (applying [Jackson](https://github.com/FasterXML/jackson) annotations) and the `consume` method will we called.
+* Every time a new message is received in the Kafka topic, its payload will be deserialized to a `MyEventPayload` (applying [Jackson](https://github.com/FasterXML/jackson) annotations) and the `consume` method will we called.
 * Then the only thing we have to do is to tranform the `MyEventPayload` to a `MyEvent` and callback the generic `MyEventConsumer`.
 
-#### 4) We wire everything together:
+### 3) Finally, we create an instance of `MyStreamEventConsumer` naming it `my-consumer` to link it to the function definition:
 ```kotlin
-@EnableBinding(MyConsumerBinding::class)
+@Configuration
 class MyConfiguration {
-   @Bean
+   @Bean("my-consumer")
    fun myStreamEventConsumer(consumer: MyEventConsumer): MyStreamEventConsumer {
       return MyStreamEventConsumer(consumer)
    }
@@ -282,13 +202,9 @@ class MyConfiguration {
    }
 }
 ```
-`@EnableBinding` annotation makes Spring to create an instance of `MyConsumerBinding` and invoke its `myConsumer` method annotated with `@Input("my-consumer")` so we will have a `SubscribableChannel` up and running, listening to messages.
+* We create a simple implementation of `MyEventConsumer` that justs prints the event.
 
-We create an instance of type `MyStreamEventConsumer` and its method `consume` annotated with `@StreamListener("my-consumer")` will be linked automatically to the `SubscribableChannel`.
-
-We create a simple implementation of `MyEventConsumer` that justs prints the event.
-
-#### 5) For testing we start a Kafka container using [Testcontainers](https://www.testcontainers.org/):
+### 4) For testing we start a Kafka container using [Testcontainers](https://www.testcontainers.org/):
 ```kotlin
 @SpringBootTest
 class MyApplicationShould {
@@ -309,65 +225,7 @@ class MyApplicationShould {
    }
 }
 ```
-Check the complete test in [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt).
-
-### Consumer with functional programming model
-
-#### 1) We configure the binding `my-consumer` in application.yml but declaring it as a function:
-```yaml
-spring:
-  cloud:
-    stream:
-      kafka:
-        binder:
-          brokers: "localhost:9094"
-      bindings:
-        my-consumer-in-0:
-          destination: "my.topic"
-          group: "${spring.application.name}"
-    function:
-      definition: "my-consumer"
-```
-As stated in [functional binding names](https://docs.spring.io/spring-cloud-stream/docs/3.1.2/reference/html/spring-cloud-stream.html#_functional_binding_names): `my-consumer` is the function name, `in` is for input bindings and `0` is the index we have to use if we have a single function.
-
-#### 2) We create the same class `MyStreamEventConsumer` but implementing `Consumer<MyEventPayload>` to fulfill the interface required by Spring Cloud Stream:
-```kotlin
-class MyStreamEventConsumer(private val consumer: MyEventConsumer) : Consumer<MyEventPayload> {
-   override fun accept(payload: MyEventPayload) {
-      consumer.consume(fromPayload(payload))
-   }
-
-   private fun fromPayload(payload: MyEventPayload): MyEvent {
-      return MyEvent(payload.string)
-   }
-}
-```
-Every time a new message is received in the Kafka topic, its payload will be deserialized to a `MyEventPayload` (applying [Jackson](https://github.com/FasterXML/jackson) annotations) and the `consume` method will we called.
-
-Then the only thing we have to do is to tranform the `MyEventPayload` to a `MyEvent` and callback the generic `MyEventConsumer`.
-
-#### 3) Finally, we create an instance of `MyStreamEventConsumer` naming it `my-consumer` to link it to the function definition:
-```kotlin
-@Configuration
-class MyConfiguration {
-   @Bean("my-consumer")
-   fun myStreamEventConsumer(consumer: MyEventConsumer): MyStreamEventConsumer {
-      return MyStreamEventConsumer(consumer)
-   }
-
-   @Bean
-   fun myEventConsumer(): MyEventConsumer {
-      return object : MyEventConsumer {
-         override fun consume(event: MyEvent) {
-            println("Received ${event.text}")
-         }
-      }
-   }
-}
-```
-We create a simple implementation of `MyEventConsumer` that justs prints the event.
-
-#### 4) Test [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt) should work the same!
+* Check the complete test in [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt).
 
 ## Extras
 
@@ -429,8 +287,7 @@ fun `produce event`() {
             }
 }
 ```
-
-Alternatively we can use `partitionKeyExpression` and other related [binding producer properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#_producer_properties) to achieve the same but at the binding abstraction level of Spring Cloud Stream.
+* Alternatively we can use `partitionKeyExpression` and other related [binding producer properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#_producer_properties) to achieve the same but at the binding abstraction level of Spring Cloud Stream.
 
 ### Retries
 
