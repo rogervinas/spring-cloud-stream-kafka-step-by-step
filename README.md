@@ -417,7 +417,7 @@ fun `send to DLQ undeserializable messages`(body: String) {
 }
 ```
 
-That's it! Happy coding!
+That's it! Happy coding! 💙
 
 ## Test this demo
 
