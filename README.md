@@ -64,8 +64,8 @@ spring:
     function:
       definition: "my-producer"
 ``` 
-* Everything under `spring.cloud.kafka.binder` is related to the Kafka binder implementation and we can use all these extra [Kafka binder properties](https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/3.1.1/reference/html/spring-cloud-stream-binder-kafka.html#_kafka_binder_properties).
-* Everything under `spring.cloud.stream.bindings` is related to the Spring Cloud Stream binding abstraction and we can use all these extra [binding properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#binding-properties).
+* Everything under `spring.cloud.kafka.binder` is related to the Kafka binder implementation and we can use all these extra [Kafka binder properties](https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#_kafka_binder_properties).
+* Everything under `spring.cloud.stream.bindings` is related to the Spring Cloud Stream binding abstraction and we can use all these extra [binding properties](https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#binding-properties).
 * As stated in [functional binding names](https://docs.spring.io/spring-cloud-stream/docs/3.1.2/reference/html/spring-cloud-stream.html#_functional_binding_names): `my-producer` is the function name, `out` is for output bindings and `0` is the index we have to use if we have a single function.
 
 ### 2) We create an implementation of `MyEventProducer` as a `Supplier` of `Flux<MyEventPayload>`, to fulfill the interfaces that both our application and Spring Cloud Stream are expecting:
@@ -166,7 +166,7 @@ spring:
     function:
       definition: "my-consumer"
 ```
-* Remember that everything under `spring.cloud.kafka.binder` is related to the Kafka binder implementation and we can use all these extra [Kafka binder properties](https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/3.1.1/reference/html/spring-cloud-stream-binder-kafka.html#_kafka_binder_properties) and everything under `spring.cloud.stream.bindings` is related to the Spring Cloud Stream binding abstraction and we can use all these extra [binding properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#binding-properties).
+* Remember that everything under `spring.cloud.kafka.binder` is related to the Kafka binder implementation and we can use all these extra [Kafka binder properties](https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#_kafka_binder_properties) and everything under `spring.cloud.stream.bindings` is related to the Spring Cloud Stream binding abstraction and we can use all these extra [binding properties](https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#binding-properties).
 * We configure a `group` because we want the application to consume from Kafka identifiying itself as a consumer group so if there were to be more than one instance of the application every message will be delivered to only one of the instances. 
 * As stated in [functional binding names](https://docs.spring.io/spring-cloud-stream/docs/3.1.2/reference/html/spring-cloud-stream.html#_functional_binding_names): `my-consumer` is the function name, `in` is for input bindings and `0` is the index we have to use if we have a single function.
 
@@ -289,11 +289,11 @@ fun `produce event`() {
             }
 }
 ```
-* Alternatively we can use `partitionKeyExpression` and other related [binding producer properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#_producer_properties) to achieve the same but at the binding abstraction level of Spring Cloud Stream.
+* Alternatively we can use `partitionKeyExpression` and other related [binding producer properties](https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#_producer_properties) to achieve the same but at the binding abstraction level of Spring Cloud Stream.
 
 ### Retries
 
-If errors are thrown while consuming messages, we can tell Spring Cloud Stream what to do using the following [binding consumer properties](https://docs.spring.io/spring-cloud-stream/docs/3.1.1/reference/html/spring-cloud-stream.html#_consumer_properties):
+If errors are thrown while consuming messages, we can tell Spring Cloud Stream what to do using the following [binding consumer properties](https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#_consumer_properties):
 * **maxAttempts**: number of retries
 * **backOffInitialInterval**, **backOffMaxInterval**, **backOffMultiplier**: backoff parameters to increase delay between retries
 * **defaultRetryable**, **retryableExceptions**: which exceptions retry or not
@@ -339,7 +339,7 @@ Additional to retries, DLQ is another mechanism we can use to deal with consumer
 
 In the case of Kafka it consists of sending to another topic all the messages that the consumer has rejected.
 
-We can configure the DLQ using these [Kafka binder consumer properties](https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/3.1.1/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties):
+We can configure the DLQ using these [Kafka binder consumer properties](https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties):
 * **enableDlq**: enable DLQ
 * **dlqName**:
   * **not set**: defaults to `error.<destination>.<group>`
