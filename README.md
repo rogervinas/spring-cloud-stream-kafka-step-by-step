@@ -35,6 +35,7 @@ This demo has been created using this [spring initializr configuration](https://
 
 You can browse older versions of this repo:
 * [Spring 2.x with legacy annotations](https://github.com/rogervinas/spring-cloud-stream-kafka-step-by-step/tree/spring-2.x-legacy-annotations) (deprecated since spring-cloud-stream:3.1)
+* [Spring 2.x with functional programming model](https://github.com/rogervinas/spring-cloud-stream-kafka-step-by-step/tree/spring-2.x)
 
 ## Producer with functional programming model
 
