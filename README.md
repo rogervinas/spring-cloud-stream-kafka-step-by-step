@@ -375,7 +375,7 @@ spring:
 
 And we can test it like this:
 
-Application errors:
+#### Application errors:
 ```kotlin
 @Test
 fun `send to DLQ rejected messages`() {
@@ -398,7 +398,7 @@ fun `send to DLQ rejected messages`() {
 }
 ```
 
-Message deserialization errors:
+#### Message deserialization errors:
 ```kotlin
 @ParameterizedTest
 @ValueSource(strings = [
