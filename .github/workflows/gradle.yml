@@ -8,13 +8,12 @@ on:
 
 jobs:
   build:
-
+    name: build
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Set up Java 11
+    - name: Set up Java
       uses: actions/setup-java@v1
       with:
         java-version: 11
@@ -28,4 +27,4 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle
     - name: Gradle build
-      run: ./gradlew build --info
+      run: ./gradlew build
