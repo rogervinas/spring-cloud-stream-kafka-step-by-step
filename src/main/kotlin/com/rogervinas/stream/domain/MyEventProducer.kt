@@ -1,5 +1,5 @@
 package com.rogervinas.stream.domain
 
 interface MyEventProducer {
-    fun produce(event: MyEvent)
+  fun produce(event: MyEvent)
 }

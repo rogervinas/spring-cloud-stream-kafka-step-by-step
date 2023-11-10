@@ -13,25 +13,25 @@ import java.util.function.Supplier
 
 class MyStreamEventProducer : Supplier<Flux<Message<MyEventPayload>>>, MyEventProducer {
 
-    val sink = Sinks.many().unicast().onBackpressureBuffer<Message<MyEventPayload>>()
+  private val sink = Sinks.many().unicast().onBackpressureBuffer<Message<MyEventPayload>>()
 
-    override fun produce(event: MyEvent) {
-        val message = MessageBuilder
-                .withPayload(toPayload(event))
-                .setHeader(KafkaHeaders.MESSAGE_KEY, toKey(event))
-                .build()
-        sink.emitNext(message, FAIL_FAST)
-    }
+  override fun produce(event: MyEvent) {
+    val message = MessageBuilder
+      .withPayload(toPayload(event))
+      .setHeader(KafkaHeaders.KEY, toKey(event))
+      .build()
+    sink.emitNext(message, FAIL_FAST)
+  }
 
-    override fun get(): Flux<Message<MyEventPayload>> {
-        return sink.asFlux()
-    }
+  override fun get(): Flux<Message<MyEventPayload>> {
+    return sink.asFlux()
+  }
 
-    private fun toPayload(event: MyEvent): MyEventPayload {
-        return MyEventPayload(event.text, event.text.length)
-    }
+  private fun toPayload(event: MyEvent): MyEventPayload {
+    return MyEventPayload(event.text, event.text.length)
+  }
 
-    private fun toKey(event: MyEvent): String {
-        return "key-${event.text.length}"
-    }
+  private fun toKey(event: MyEvent): String {
+    return "key-${event.text.length}"
+  }
 }
