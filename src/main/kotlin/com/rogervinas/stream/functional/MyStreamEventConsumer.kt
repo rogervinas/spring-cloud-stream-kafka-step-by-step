@@ -7,11 +7,11 @@ import java.util.function.Consumer
 
 class MyStreamEventConsumer(private val consumer: MyEventConsumer) : Consumer<MyEventPayload> {
 
-    override fun accept(payload: MyEventPayload) {
-        consumer.consume(fromPayload(payload))
-    }
+  override fun accept(payload: MyEventPayload) {
+    consumer.consume(fromPayload(payload))
+  }
 
-    private fun fromPayload(payload: MyEventPayload): MyEvent {
-        return MyEvent(payload.string)
-    }
+  private fun fromPayload(payload: MyEventPayload): MyEvent {
+    return MyEvent(payload.string)
+  }
 }

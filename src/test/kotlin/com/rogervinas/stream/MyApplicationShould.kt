@@ -1,6 +1,10 @@
 package com.rogervinas.stream
 
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.argumentCaptor
+import com.nhaarman.mockito_kotlin.doThrow
+import com.nhaarman.mockito_kotlin.timeout
+import com.nhaarman.mockito_kotlin.verify
 import com.rogervinas.stream.domain.MyEvent
 import com.rogervinas.stream.domain.MyEventConsumer
 import com.rogervinas.stream.domain.MyEventProducer
@@ -18,7 +22,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.env.Environment
 import org.springframework.test.context.ActiveProfiles
 import java.time.Duration
-import java.util.*
+import java.util.UUID
 import java.util.function.Consumer
 
 @SpringBootTest(webEnvironment = DEFINED_PORT)
