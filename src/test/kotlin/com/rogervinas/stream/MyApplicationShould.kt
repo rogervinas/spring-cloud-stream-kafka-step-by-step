@@ -29,11 +29,13 @@ import java.util.function.Consumer
 @ActiveProfiles("docker-compose")
 class MyApplicationShould {
 
-  val TOPIC = "my.topic"
-  val TOPIC_DLQ = "my.topic.errors"
+  companion object {
+    private const val TOPIC = "my.topic"
+    private const val TOPIC_DLQ = "my.topic.errors"
 
-  val TEN_SECONDS = Duration.ofSeconds(10)
-  val FIVE = 5
+    private val TEN_SECONDS = Duration.ofSeconds(10)
+    private const val FIVE = 5
+  }
 
   @Autowired
   lateinit var env: Environment

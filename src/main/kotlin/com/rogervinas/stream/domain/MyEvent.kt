@@ -1,3 +1,3 @@
 package com.rogervinas.stream.domain
 
-class MyEvent(val text: String)
+data class MyEvent(val text: String)
