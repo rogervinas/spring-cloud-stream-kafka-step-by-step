@@ -48,7 +48,7 @@ interface MyEventProducer {
 }
 ```
 
-These are the steps to follow:
+Then we follow these steps:
 
 ### 1) We configure the binding `my-producer` in application.yml:
 ```yaml
@@ -148,6 +148,8 @@ interface MyEventConsumer {
     fun consume(event: MyEvent)
 }
 ```
+
+Then we follow these steps:
 
 ### 1) We configure the binding `my-consumer` in application.yml but declaring it as a function:
 ```yaml
