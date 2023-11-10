@@ -152,7 +152,7 @@ interface MyEventConsumer {
 
 Then we follow these steps:
 
-### 1) We configure the binding `my-consumer` in application.yml but declaring it as a function:
+### 1) We declare the binding `my-consumer` in application.yml:
 ```yaml
 spring:
   cloud:
@@ -171,7 +171,7 @@ spring:
 * We configure a `group` because we want the application to consume from Kafka identifiying itself as a consumer group so if there were to be more than one instance of the application every message will be delivered to only one of the instances. 
 * As stated in [functional binding names](https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#_functional_binding_names): `my-consumer` is the function name, `in` is for input bindings and `0` is the index we have to use if we have a single function.
 
-### 2) We create the same class `MyStreamEventConsumer` but implementing `Consumer<MyEventPayload>` to fulfill the interface required by Spring Cloud Stream:
+### 2) We create the same class `MyStreamEventConsumer` implementing `Consumer<MyEventPayload>` to fulfill the interface required by Spring Cloud Stream:
 ```kotlin
 class MyStreamEventConsumer(private val consumer: MyEventConsumer) : Consumer<MyEventPayload> {
   override fun accept(payload: MyEventPayload) {
