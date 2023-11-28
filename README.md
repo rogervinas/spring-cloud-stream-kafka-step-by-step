@@ -2,7 +2,7 @@
 ![Java](https://img.shields.io/badge/Java-21-blue?labelColor=black)
 ![Kotlin](https://img.shields.io/badge/Kotlin-1.9.21-blue?labelColor=black)
 ![SpringBoot](https://img.shields.io/badge/SpringBoot-3.2.0-blue?labelColor=black)
-![SpringCloudStream](https://img.shields.io/badge/SpringCloudStream-4.1.0RC1-blue?labelColor=black)
+![SpringCloudStream](https://img.shields.io/badge/SpringCloudStream-4.1.0_RC1-blue?labelColor=black)
 
 # Spring Cloud Stream & Kafka binder step by step
 
