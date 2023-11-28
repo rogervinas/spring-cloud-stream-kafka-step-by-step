@@ -16,9 +16,10 @@ java.targetCompatibility = JavaVersion.VERSION_21
 
 repositories {
 	mavenCentral()
+  maven { url = uri("https://repo.spring.io/milestone") }
 }
 
-extra["springCloudVersion"] = "2022.0.4"
+val springCloudVersion = "2023.0.0-RC1"
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
@@ -37,7 +38,7 @@ dependencies {
 
 dependencyManagement {
 	imports {
-		mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
+		mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")
 	}
 }
 
