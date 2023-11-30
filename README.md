@@ -17,7 +17,7 @@ It offers an abstraction (the **binding**) that works the same whatever undernea
 
 Let's try to setup a simple example step by step and see how it works!
 
-This demo has been created using this [spring initializr configuration](https://start.spring.io/#!type=gradle-project&language=kotlin&packaging=jar&groupId=com.example&artifactId=demo&name=demo&description=Demo%20project%20for%20Spring%20Boot&packageName=com.example.demo&dependencies=cloud-stream,web) adding Kafka binder dependency `spring-cloud-starter-stream-kafka`.
+This demo has been created using this [spring initializr configuration](https://start.spring.io/#!type=gradle-project&language=kotlin&packaging=jar&groupId=com.example&artifactId=demo&name=demo&description=Demo%20project%20for%20Spring%20Boot&packageName=com.example.demo&dependencies=cloud-stream,web) adding Kafka binder dependency **spring-cloud-starter-stream-kafka**.
 
 * [Producer with functional programming model](#producer-with-functional-programming-model)
 * [Consumer with functional programming model](#consumer-with-functional-programming-model)
@@ -41,7 +41,7 @@ You can browse older versions of this repo:
 
 Our final goal is to produce messages to a Kafka topic.
 
-From the point of view of the application we want an interface `MyEventProducer` to produce events to a generic messaging system. These events will be of type `MyEvent`, just containing a `text` field to make it simpler:
+From the point of view of the application we want an interface **MyEventProducer** to produce events to a generic messaging system. These events will be of type **MyEvent**, just containing a **text** field to make it simpler:
 ```kotlin
 data class MyEvent(val text: String)
 
@@ -70,16 +70,16 @@ spring:
 * Everything under `spring.cloud.stream.bindings` is related to the Spring Cloud Stream binding abstraction and we can use all these extra [binding properties](https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#binding-properties).
 * As stated in [functional binding names](https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#_functional_binding_names): `my-producer` is the function name, `out` is for output bindings and `0` is the index we have to use if we have a single function.
 
-### 2) We create an implementation of `MyEventProducer` as a `Supplier` of `Flux<MyEventPayload>`, to fulfill the interfaces that both our application and Spring Cloud Stream are expecting:
+### 2) We create an implementation of `MyEventProducer` as a Kotlin lambda `() -> Flux<MyEventPayload>`, to fulfill the interfaces that both our application and Spring Cloud Stream are expecting:
 ```kotlin
-class MyStreamEventProducer : Supplier<Flux<MyEventPayload>>, MyEventProducer {
+class MyStreamEventProducer : () -> Flux<MyEventPayload>, MyEventProducer {
   private val sink = Sinks.many().unicast().onBackpressureBuffer<MyEventPayload>()
 
   override fun produce(event: MyEvent) {
     sink.emitNext(toPayload(event), FAIL_FAST)
   }
 
-  override fun get(): Flux<MyEventPayload> {
+  override fun invoke(): Flux<MyEventPayload> {
     return sink.asFlux()
   }
 
@@ -105,13 +105,15 @@ class MyConfiguration {
   fun myStreamEventProducer() = MyStreamEventProducer()
   
   @Bean("my-producer")
-  fun myStreamEventProducerFunction(producer: MyStreamEventProducer): () -> Flux<Message<MyEventPayload>> =
-    producer::get
+  fun myStreamEventProducerFunction(producer: MyStreamEventProducer): () -> Flux<MyEventPayload> = producer
 }
 ```
-* We create a `MyStreamEventProducer` that will be injected wherever a `MyEventProducer` is needed.
-* We create a lambda returning a `Flux<Message<MyEventPayload>>` that will be linked to the `my-producer` function, implemented by calling `myStreamEventProducer.get()` method.
-* We do not merge both beans in one to avoid issues with `KotlinLambdaToFunctionAutoConfiguration`.
+* Both beans return the same instance ... why?
+  * We need an instance with type `MyStreamEventProducer` that will be injected wherever a `MyEventProducer` is needed.
+  * We need an instance with type `() -> Flux<MyEventPayload>` that will be bound to `my-producer` function.
+    * As we are using **Kotlin** we need to define it as a lambda (required by **KotlinLambdaToFunctionAutoConfiguration**).
+    * If we were using **Java** we should define it as `Supplier<Flux<MyEventPayload>>`.
+  * As of current version of Spring Cloud Stream, if we mix both beans in one we may have issues.
 
 ### 4) For testing we start a Kafka container using [Testcontainers](https://www.testcontainers.org/):
 ```kotlin
@@ -189,7 +191,7 @@ class MyStreamEventConsumer(private val consumer: MyEventConsumer) : (MyEventPay
 }
 ```
 * Every time a new message is received in the Kafka topic, its payload will be deserialized to a `MyEventPayload` and the `invoke` method will we called.
-* Then the only thing we have to do is to tranform the `MyEventPayload` to a `MyEvent` and callback the generic `MyEventConsumer`.
+* Then the only thing we have to do is to transform the `MyEventPayload` to a `MyEvent` and callback the generic `MyEventConsumer`.
 
 ### 3) Finally, we configure the beans needed to link `my-consumer` function definition:
 ```kotlin
@@ -207,7 +209,9 @@ class MyConfiguration {
     MyStreamEventConsumer(consumer)
 }
 ```
-* We create a lambda receiving a `MyEventPayload` that will be linked to the `my-consumer` function, implemented by a `MyStreamEventConsumer`.
+* We need an instance with type `(MyEventPayload) -> Unit` that will be bound to `my-consumer` function.
+  * As we are using **Kotlin** we need to define it as a lambda (required by **KotlinLambdaToFunctionAutoConfiguration**).
+  * If we were using **Java** we should define it as `Consumer<MyEventPayload>`.
 * We create a simple implementation of `MyEventConsumer` that justs prints the event.
 
 ### 4) For testing we start a Kafka container using [Testcontainers](https://www.testcontainers.org/):
@@ -247,7 +251,7 @@ This is important on the consumer side, because **chronological order of message
 
 To specify the message key in `MyStreamEventProducer` we can produce `Message<MyEventPayload>` instead of `MyEventPayload` and inform the `KafkaHeaders.KEY` header:
 ```kotlin
-class MyStreamEventProducer : Supplier<Flux<Message<MyEventPayload>>>, MyEventProducer {
+class MyStreamEventProducer : () -> Flux<Message<MyEventPayload>>, MyEventProducer {
   // ...
   override fun produce(event: MyEvent) {
     val message = MessageBuilder
