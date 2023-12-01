@@ -1,7 +1,7 @@
 package com.rogervinas.stream.shared
 
-import javax.annotation.PostConstruct
-import javax.annotation.PreDestroy
+import jakarta.annotation.PostConstruct
+import jakarta.annotation.PreDestroy
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.testcontainers.containers.ComposeContainer
