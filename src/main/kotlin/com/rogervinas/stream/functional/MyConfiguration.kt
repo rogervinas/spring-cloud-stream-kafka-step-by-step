@@ -26,6 +26,5 @@ class MyConfiguration {
   fun myStreamEventProducer() = MyStreamEventProducer()
 
   @Bean("my-producer")
-  fun myStreamEventProducerFunction(producer: MyStreamEventProducer): () -> Flux<Message<MyEventPayload>> =
-    producer::get
+  fun myStreamEventProducerFunction(producer: MyStreamEventProducer): () -> Flux<Message<MyEventPayload>> = producer
 }

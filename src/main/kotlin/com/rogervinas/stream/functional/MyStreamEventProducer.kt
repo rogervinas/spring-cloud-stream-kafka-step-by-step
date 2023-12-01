@@ -9,9 +9,8 @@ import org.springframework.messaging.support.MessageBuilder
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Sinks
 import reactor.core.publisher.Sinks.EmitFailureHandler.FAIL_FAST
-import java.util.function.Supplier
 
-class MyStreamEventProducer : Supplier<Flux<Message<MyEventPayload>>>, MyEventProducer {
+class MyStreamEventProducer : () -> Flux<Message<MyEventPayload>>, MyEventProducer {
 
   private val sink = Sinks.many().unicast().onBackpressureBuffer<Message<MyEventPayload>>()
 
@@ -23,15 +22,9 @@ class MyStreamEventProducer : Supplier<Flux<Message<MyEventPayload>>>, MyEventPr
     sink.emitNext(message, FAIL_FAST)
   }
 
-  override fun get(): Flux<Message<MyEventPayload>> {
-    return sink.asFlux()
-  }
+  override fun invoke() = sink.asFlux()
 
-  private fun toPayload(event: MyEvent): MyEventPayload {
-    return MyEventPayload(event.text, event.text.length)
-  }
+  private fun toPayload(event: MyEvent) = MyEventPayload(event.text, event.text.length)
 
-  private fun toKey(event: MyEvent): String {
-    return "key-${event.text.length}"
-  }
+  private fun toKey(event: MyEvent) = "key-${event.text.length}"
 }
