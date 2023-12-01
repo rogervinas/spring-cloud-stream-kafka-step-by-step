@@ -109,7 +109,6 @@ class MyConfiguration {
   * We need an instance with type `() -> Flux<MyEventPayload>` that will be bound to `my-producer` function.
     * As we are using **Kotlin** we need to define it as a lambda (required by **KotlinLambdaToFunctionAutoConfiguration**).
     * If we were using **Java** we should define it as `Supplier<Flux<MyEventPayload>>`.
-    * Both `MyStreamEventProducer` and `MyStreamEventProducer::invoke` methods implement `() -> Flux<MyEventPayload>`, we just return the second one to avoid issues having duplicated beans implementing `MyEventProducer`, sometimes Spring Boot can be tricky.
 
 ### 4) For testing we start a Kafka container using [Testcontainers](https://www.testcontainers.org/):
 ```kotlin
@@ -209,7 +208,7 @@ class MyConfiguration {
 * We need an instance with type `(MyEventPayload) -> Unit` that will be bound to `my-consumer` function.
   * As we are using **Kotlin** we need to define it as a lambda (required by **KotlinLambdaToFunctionAutoConfiguration**).
   * If we were using **Java** we should define it as `Consumer<MyEventPayload>`.
-* We create a simple implementation of `MyEventConsumer` that justs prints the event.
+* We create a simple implementation of `MyEventConsumer` that just prints the event.
 
 ### 4) For testing we start a Kafka container using [Testcontainers](https://www.testcontainers.org/):
 ```kotlin
