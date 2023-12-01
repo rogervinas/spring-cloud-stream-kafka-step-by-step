@@ -223,7 +223,7 @@ class MyApplicationShould {
     val text = "hello ${UUID.randomUUID()}"
     kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
-    // We wait at most 5 seconds to receive the expected MyEvent in the MyEventConsumer mock
+    // We wait at most 5 seconds to receive the expected MyEvent in MyEventConsumer mock
     val eventCaptor = argumentCaptor<MyEvent>()
     verify(eventConsumer, timeout(FIVE_SECONDS.toMillis())).consume(eventCaptor.capture())
 
