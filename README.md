@@ -1,8 +1,8 @@
 ![CI](https://github.com/rogervinas/spring-cloud-stream-kafka-step-by-step/actions/workflows/gradle.yml/badge.svg)
-![Java](https://img.shields.io/badge/Java-17-blue?labelColor=black)
+![Java](https://img.shields.io/badge/Java-21-blue?labelColor=black)
 ![Kotlin](https://img.shields.io/badge/Kotlin-1.9.21-blue?labelColor=black)
-![SpringBoot](https://img.shields.io/badge/SpringBoot-2.7.8-blue?labelColor=black)
-![SpringCloud](https://img.shields.io/badge/SpringCloud-2021.0.8-blue?labelColor=black)
+![SpringBoot](https://img.shields.io/badge/SpringBoot-3.2.0-blue?labelColor=black)
+![SpringCloud](https://img.shields.io/badge/SpringCloud-2023.0.0_RC1-blue?labelColor=black)
 
 # Spring Cloud Stream & Kafka binder step by step
 
@@ -244,14 +244,14 @@ When a message is sent to a topic, Kafka chooses randomly the destination partit
 
 This is important on the consumer side, because **chronological order of messages is only guaranteed within the same partition**, so if we need to consume some messages in the order they were produced, we should use the same key for all of them (i.e. for messages of a *user*, we use the *user* id as the message key).
 
-To specify the message key in `MyStreamEventProducer` we can produce `Message<MyEventPayload>` instead of `MyEventPayload` and inform the `KafkaHeaders.MESSAGE_KEY` header:
+To specify the message key in `MyStreamEventProducer` we can produce `Message<MyEventPayload>` instead of `MyEventPayload` and inform the `KafkaHeaders.KEY` header:
 ```kotlin
 class MyStreamEventProducer : () -> Flux<Message<MyEventPayload>>, MyEventProducer {
   // ...
   override fun produce(event: MyEvent) {
     val message = MessageBuilder
       .withPayload(MyEventPayload(event.text, event.text.length))
-      .setHeader(KafkaHeaders.MESSAGE_KEY, "key-${event.text.length}")
+      .setHeader(KafkaHeaders.KEY, "key-${event.text.length}")
       .build()
     sink.emitNext(message, FAIL_FAST)
   }
