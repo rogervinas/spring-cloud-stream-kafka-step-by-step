@@ -16,8 +16,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.env.Environment
 import org.springframework.test.context.ActiveProfiles
@@ -25,7 +26,7 @@ import java.time.Duration
 import java.util.UUID
 import java.util.function.Consumer
 
-@SpringBootTest(webEnvironment = DEFINED_PORT)
+@SpringBootTest(webEnvironment = NONE)
 @ActiveProfiles("docker-compose")
 class MyApplicationShould {
 
@@ -41,6 +42,7 @@ class MyApplicationShould {
   lateinit var env: Environment
 
   @Autowired
+  @Qualifier("myStreamEventProducer") // Avoid SpringBootTest issue: expected single matching bean but found 2
   lateinit var eventProducer: MyEventProducer
 
   @MockBean

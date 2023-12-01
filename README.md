@@ -79,13 +79,9 @@ class MyStreamEventProducer : () -> Flux<MyEventPayload>, MyEventProducer {
     sink.emitNext(toPayload(event), FAIL_FAST)
   }
 
-  override fun invoke(): Flux<MyEventPayload> {
-    return sink.asFlux()
-  }
+  override fun invoke() = sink.asFlux()
 
-  private fun toPayload(event: MyEvent): MyEventPayload {
-    return MyEventPayload(event.text, event.text.length)
-  }
+  private fun toPayload(event: MyEvent) = MyEventPayload(event.text, event.text.length)
 }
 
 data class MyEventPayload(
@@ -113,25 +109,26 @@ class MyConfiguration {
   * We need an instance with type `() -> Flux<MyEventPayload>` that will be bound to `my-producer` function.
     * As we are using **Kotlin** we need to define it as a lambda (required by **KotlinLambdaToFunctionAutoConfiguration**).
     * If we were using **Java** we should define it as `Supplier<Flux<MyEventPayload>>`.
-  * As of current version of Spring Cloud Stream, if we mix both beans in one we may have issues.
+    * Both `MyStreamEventProducer` and `MyStreamEventProducer::invoke` methods implement `() -> Flux<MyEventPayload>`, we just return the second one to avoid issues having duplicated beans implementing `MyEventProducer`, sometimes Spring Boot can be tricky.
 
 ### 4) For testing we start a Kafka container using [Testcontainers](https://www.testcontainers.org/):
 ```kotlin
 @SpringBootTest
 class MyApplicationShould {
-  // we inject MyEventProducer (it should be a MyStreamEventProducer)
-  @Autowired lateinit var eventProducer: MyEventProducer
+  @Autowired // We inject MyEventProducer (it should be a MyStreamEventProducer)
+  @Qualifier("myStreamEventProducer") // Avoid SpringBootTest issue: expected single matching bean but found 2  
+  lateinit var eventProducer: MyEventProducer
     
   @Test
   fun `produce event`() {
-    // we produce using MyEventProducer
+    // We produce an event using MyEventProducer
     val text = "hello ${UUID.randomUUID()}"
     eventProducer.produce(MyEvent(text))
 
-    // we consume from Kafka using a helper
+    // We consume from Kafka using a helper
     val records = consumerHelper.consumeAtLeast(1, FIVE_SECONDS)
 
-    // we verify the received json
+    // We verify the received json
     assertThat(records).singleElement().satisfies { record ->
       JSONAssert.assertEquals(
         record.value(),
@@ -185,9 +182,7 @@ class MyStreamEventConsumer(private val consumer: MyEventConsumer) : (MyEventPay
     consumer.consume(fromPayload(payload))
   }
 
-  private fun fromPayload(payload: MyEventPayload): MyEvent {
-    return MyEvent(payload.string)
-  }
+  private fun fromPayload(payload: MyEventPayload) = MyEvent(payload.string)
 }
 ```
 * Every time a new message is received in the Kafka topic, its payload will be deserialized to a `MyEventPayload` and the `invoke` method will we called.
@@ -204,9 +199,11 @@ class MyConfiguration {
     }
   }
 
+  @Bean
+  fun myStreamEventConsumer(consumer: MyEventConsumer) = MyStreamEventConsumer(consumer)
+  
   @Bean("my-consumer")
-  fun myStreamEventConsumerFunction(consumer: MyEventConsumer): (MyEventPayload) -> Unit =
-    MyStreamEventConsumer(consumer)
+  fun myStreamEventConsumerFunction(consumer: myStreamEventConsumer): (MyEventPayload) -> Unit = consumer
 }
 ```
 * We need an instance with type `(MyEventPayload) -> Unit` that will be bound to `my-consumer` function.
@@ -218,16 +215,16 @@ class MyConfiguration {
 ```kotlin
 @SpringBootTest
 class MyApplicationShould {
-  // we mock MyEventConsumer
-  @MockBean lateinit var eventConsumer: MyEventConsumer
+  @MockBean // We mock MyEventConsumer
+  lateinit var eventConsumer: MyEventConsumer
 
  @Test
  fun `consume event`() {
-    // we send a Kafka message using a helper
+    // We send a Kafka message using a helper
     val text = "hello ${UUID.randomUUID()}"
     kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
-    // we wait at most 5 seconds to receive the expected MyEvent in the MyEventConsumer mock
+    // We wait at most 5 seconds to receive the expected MyEvent in the MyEventConsumer mock
     val eventCaptor = argumentCaptor<MyEvent>()
     verify(eventConsumer, timeout(FIVE_SECONDS.toMillis())).consume(eventCaptor.capture())
 
