@@ -16,10 +16,9 @@ java.targetCompatibility = JavaVersion.VERSION_21
 
 repositories {
 	mavenCentral()
-  maven { url = uri("https://repo.spring.io/milestone") }
 }
 
-val springCloudVersion = "2023.0.0-RC1"
+val springCloudVersion = "2023.0.0"
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
