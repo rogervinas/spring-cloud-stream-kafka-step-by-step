@@ -6,7 +6,7 @@ plugins {
   id("org.springframework.boot") version "3.2.3"
   id("io.spring.dependency-management") version "1.1.4"
   kotlin("jvm") version "1.9.23"
-  kotlin("plugin.spring") version "1.9.22"
+  kotlin("plugin.spring") version "1.9.23"
 }
 
 group = "com.rogervinas"
@@ -29,7 +29,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-	implementation("org.testcontainers:testcontainers:1.19.6")
+	implementation("org.testcontainers:testcontainers:1.19.7")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("com.nhaarman:mockito-kotlin:1.6.0")
