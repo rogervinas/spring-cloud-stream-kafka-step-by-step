@@ -5,8 +5,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   id("org.springframework.boot") version "3.2.5"
   id("io.spring.dependency-management") version "1.1.5"
-  kotlin("jvm") version "1.9.23"
-  kotlin("plugin.spring") version "1.9.23"
+  kotlin("jvm") version "2.0.0"
+  kotlin("plugin.spring") version "2.0.0"
 }
 
 group = "com.rogervinas"
@@ -29,7 +29,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-	implementation("org.testcontainers:testcontainers:1.19.7")
+	implementation("org.testcontainers:testcontainers:1.19.8")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("com.nhaarman:mockito-kotlin:1.6.0")
