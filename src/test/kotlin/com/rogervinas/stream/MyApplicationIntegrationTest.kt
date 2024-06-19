@@ -1,18 +1,16 @@
 package com.rogervinas.stream
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.argumentCaptor
-import com.nhaarman.mockito_kotlin.doThrow
-import com.nhaarman.mockito_kotlin.timeout
-import com.nhaarman.mockito_kotlin.verify
-import com.rogervinas.stream.helper.DockerComposeContainerHelper
-import com.rogervinas.stream.helper.KafkaConsumerHelper
-import com.rogervinas.stream.helper.KafkaProducerHelper
+import com.nhaarman.mockito_kotlin.*
 import com.rogervinas.stream.domain.MyEvent
 import com.rogervinas.stream.domain.MyEventConsumer
 import com.rogervinas.stream.domain.MyEventProducer
 import com.rogervinas.stream.domain.MyRetryableException
+import com.rogervinas.stream.helper.DockerComposeContainerHelper
+import com.rogervinas.stream.helper.KafkaConsumerHelper
+import com.rogervinas.stream.helper.KafkaProducerHelper
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.Awaitility.await
+import org.awaitility.Durations.TEN_SECONDS
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -28,8 +26,7 @@ import org.springframework.boot.test.mock.mockito.MockReset
 import org.springframework.test.context.ActiveProfiles
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.time.Duration
-import java.util.UUID
+import java.util.*
 import java.util.function.Consumer
 
 @SpringBootTest(webEnvironment = NONE)
@@ -41,7 +38,7 @@ class MyApplicationIntegrationTest {
     private const val TOPIC = "my.topic"
     private const val TOPIC_DLQ = "my.topic.errors"
 
-    private val TEN_SECONDS = Duration.ofSeconds(10)
+    private const val ONE = 1
     private const val FIVE = 5
 
     @Container
@@ -85,26 +82,30 @@ class MyApplicationIntegrationTest {
 
   @Test
   fun `should consume event`() {
+    val eventCaptor = argumentCaptor<MyEvent>()
+    doNothing().`when`(eventConsumer).consume(eventCaptor.capture())
+
     val text = "hello ${UUID.randomUUID()}"
     kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
-    val eventCaptor = argumentCaptor<MyEvent>()
-    verify(eventConsumer, timeout(TEN_SECONDS.toMillis())).consume(eventCaptor.capture())
+    verify(eventConsumer, timeout(TEN_SECONDS.toMillis())).consume(any())
 
-    assertThat(eventCaptor.firstValue).satisfies(Consumer { event -> assertThat(event.text).isEqualTo(text) })
+    await().atMost(TEN_SECONDS).untilAsserted {
+      assertThat(eventCaptor.allValues.filter { it.text == text }).hasSize(ONE)
+    }
   }
 
   @Test
   fun `should retry consume event 5 times`() {
-    doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
+    val eventCaptor = argumentCaptor<MyEvent>()
+    doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(eventCaptor.capture())
 
     val text = "hello ${UUID.randomUUID()}"
     kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
-    val eventCaptor = argumentCaptor<MyEvent>()
-    verify(eventConsumer, timeout(TEN_SECONDS.toMillis()).times(FIVE)).consume(eventCaptor.capture())
-
-    assertThat(eventCaptor.allValues).allSatisfy(Consumer { event -> assertThat(event.text).isEqualTo(text) })
+    await().atMost(TEN_SECONDS).untilAsserted {
+      assertThat(eventCaptor.allValues.filter { it.text == text }).hasSize(FIVE)
+    }
   }
 
   @Test

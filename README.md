@@ -220,20 +220,20 @@ class MyApplicationIntegrationTest {
   @MockBean // We mock MyEventConsumer
   lateinit var eventConsumer: MyEventConsumer
 
- @Test
- fun `consume event`() {
+  @Test
+  fun `should consume event`() {
+    val eventCaptor = argumentCaptor<MyEvent>()
+    doNothing().`when`(eventConsumer).consume(eventCaptor.capture())
+
     // We send a Kafka message using a helper
     val text = "hello ${UUID.randomUUID()}"
     kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
     // We wait at most 5 seconds to receive the expected MyEvent in MyEventConsumer mock
-    val eventCaptor = argumentCaptor<MyEvent>()
-    verify(eventConsumer, timeout(FIVE_SECONDS.toMillis())).consume(eventCaptor.capture())
-
-    assertThat(eventCaptor.firstValue).satisfies { event -> 
-      assertThat(event.text).isEqualTo(text) 
-    }
- }
+    await().atMost(TEN_SECONDS).untilAsserted {
+      assertThat(eventCaptor.allValues.filter { it.text == text }).isEqualTo(ONE)
+    } 
+  }
 }
 ```
 * Check the complete test in [MyApplicationIntegrationTest.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationIntegrationTest.kt).
@@ -278,7 +278,7 @@ spring:
 And we can test it like this:
 ```kotlin
 @Test
-fun `produce event`() {
+fun `should produce event`() {
   val text = "hello ${UUID.randomUUID()}"
   eventProducer.produce(MyEvent(text))
   
@@ -326,19 +326,18 @@ spring:
 And we can test it like this:
 ```kotlin
 @Test
-fun `retry consume event 5 times`() {
+fun `should retry consume event 5 times`() {
   // we throw a MyRetryableException every time we receive a message
-  doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
+  val eventCaptor = argumentCaptor<MyEvent>()
+  doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(eventCaptor.capture())
 
   // we send a Kafka message using a helper
   val text = "hello ${UUID.randomUUID()}"
   kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
   // consumer has been called five times with the same message
-  val eventCaptor = argumentCaptor<MyEvent>()
-  verify(eventConsumer, timeout(TEN_SECONDS.toMillis()).times(FIVE)).consume(eventCaptor.capture())
-  assertThat(eventCaptor.allValues).allSatisfy { event -> 
-    assertThat(event.text).isEqualTo(text) 
+  await().atMost(TEN_SECONDS).untilAsserted {
+    assertThat(eventCaptor.allValues.filter { it.text == text }).isEqualTo(FIVE)
   }
 }
 ```
@@ -384,7 +383,7 @@ And we can test it like this:
 #### Application errors:
 ```kotlin
 @Test
-fun `send to DLQ rejected messages`() {
+fun `should send to DLQ rejected messages`() {
   // we throw a MyRetryableException every time we receive a message
   doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
 
