@@ -11,8 +11,6 @@ plugins {
 
 group = "com.rogervinas"
 version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_21
-java.targetCompatibility = JavaVersion.VERSION_21
 
 repositories {
 	mavenCentral()
@@ -20,6 +18,12 @@ repositories {
 
 val springCloudVersion = "2023.0.2"
 val testContainersVersion = "1.19.8"
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
+}
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
@@ -35,6 +39,7 @@ dependencies {
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("com.nhaarman:mockito-kotlin:1.6.0")
+  testImplementation("org.awaitility:awaitility:4.2.1")
 }
 
 dependencyManagement {
@@ -44,9 +49,8 @@ dependencyManagement {
 }
 
 tasks.withType<KotlinCompile> {
-	kotlinOptions {
+	compilerOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
-		jvmTarget = "21"
 	}
 }
 
