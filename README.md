@@ -436,11 +436,6 @@ docker-compose up -d
 docker-compose down
 ```
 
-Run with testcontainers:
-```shell
-SPRING_PROFILES_ACTIVE=docker-compose ./gradlew bootRun
-```
-
 Then you can use [kcat](https://github.com/edenhill/kcat) to produce/consume to/from Kafka:
 ```shell
 # consume

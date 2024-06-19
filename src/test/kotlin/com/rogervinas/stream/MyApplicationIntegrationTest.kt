@@ -5,6 +5,9 @@ import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.doThrow
 import com.nhaarman.mockito_kotlin.timeout
 import com.nhaarman.mockito_kotlin.verify
+import com.rogervinas.stream.helper.DockerComposeContainerHelper
+import com.rogervinas.stream.helper.KafkaConsumerHelper
+import com.rogervinas.stream.helper.KafkaProducerHelper
 import com.rogervinas.stream.domain.MyEvent
 import com.rogervinas.stream.domain.MyEventConsumer
 import com.rogervinas.stream.domain.MyEventProducer
@@ -17,18 +20,21 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.core.env.Environment
 import org.springframework.test.context.ActiveProfiles
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.Duration
 import java.util.UUID
 import java.util.function.Consumer
 
 @SpringBootTest(webEnvironment = NONE)
-@ActiveProfiles("docker-compose")
-class MyApplicationShould {
+@Testcontainers
+@ActiveProfiles("test")
+class MyApplicationIntegrationTest {
 
   companion object {
     private const val TOPIC = "my.topic"
@@ -36,10 +42,10 @@ class MyApplicationShould {
 
     private val TEN_SECONDS = Duration.ofSeconds(10)
     private const val FIVE = 5
-  }
 
-  @Autowired
-  lateinit var env: Environment
+    @Container
+    val container = DockerComposeContainerHelper().createContainer()
+  }
 
   @Autowired
   @Qualifier("myStreamEventProducer") // Avoid SpringBootTest issue: expected single matching bean but found 2
@@ -48,18 +54,19 @@ class MyApplicationShould {
   @MockBean
   lateinit var eventConsumer: MyEventConsumer
 
-  lateinit var kafkaProducerHelper: MyKafkaProducerHelper
-  lateinit var kafkaConsumerHelper: MyKafkaConsumerHelper
-  lateinit var kafkaDLQConsumerHelper: MyKafkaConsumerHelper
+  @Value("\${spring.cloud.stream.kafka.binder.brokers}")
+  lateinit var kafkaBroker: String
+  lateinit var kafkaProducerHelper: KafkaProducerHelper
+  lateinit var kafkaConsumerHelper: KafkaConsumerHelper
+  lateinit var kafkaDLQConsumerHelper: KafkaConsumerHelper
 
   @BeforeEach
   fun setUp() {
-    val bootstrapServers = env.getProperty("spring.cloud.stream.kafka.binder.brokers")!!
-    kafkaConsumerHelper = MyKafkaConsumerHelper(bootstrapServers, TOPIC)
+    kafkaConsumerHelper = KafkaConsumerHelper(kafkaBroker, TOPIC)
     kafkaConsumerHelper.consumeAll()
-    kafkaDLQConsumerHelper = MyKafkaConsumerHelper(bootstrapServers, TOPIC_DLQ)
+    kafkaDLQConsumerHelper = KafkaConsumerHelper(kafkaBroker, TOPIC_DLQ)
     kafkaDLQConsumerHelper.consumeAll()
-    kafkaProducerHelper = MyKafkaProducerHelper(bootstrapServers)
+    kafkaProducerHelper = KafkaProducerHelper(kafkaBroker)
   }
 
   @Test
