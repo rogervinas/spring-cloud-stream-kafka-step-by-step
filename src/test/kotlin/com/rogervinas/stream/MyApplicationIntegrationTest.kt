@@ -70,7 +70,7 @@ class MyApplicationIntegrationTest {
   }
 
   @Test
-  fun `produce event`() {
+  fun `should produce event`() {
     val text = "hello ${UUID.randomUUID()}"
     eventProducer.produce(MyEvent(text))
 
@@ -83,7 +83,7 @@ class MyApplicationIntegrationTest {
   }
 
   @Test
-  fun `consume event`() {
+  fun `should consume event`() {
     val text = "hello ${UUID.randomUUID()}"
     kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
@@ -94,7 +94,7 @@ class MyApplicationIntegrationTest {
   }
 
   @Test
-  fun `retry consume event 5 times`() {
+  fun `should retry consume event 5 times`() {
     doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
 
     val text = "hello ${UUID.randomUUID()}"
@@ -107,7 +107,7 @@ class MyApplicationIntegrationTest {
   }
 
   @Test
-  fun `send to DLQ rejected messages`() {
+  fun `should send to DLQ rejected messages`() {
     doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
 
     val text = "hello ${UUID.randomUUID()}"
@@ -121,7 +121,7 @@ class MyApplicationIntegrationTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["plain text", "{\"unknownField\":\"not expected\"}"])
-  fun `send to DLQ undeserializable messages`(body: String) {
+  fun `should send to DLQ undeserializable messages`(body: String) {
     kafkaProducerHelper.send(TOPIC, body)
 
     val errorRecords = kafkaDLQConsumerHelper.consumeAtLeast(1, TEN_SECONDS)

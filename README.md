@@ -113,14 +113,16 @@ class MyConfiguration {
 
 ### 4) For testing we start a Kafka container using [Testcontainers](https://www.testcontainers.org/):
 ```kotlin
-@SpringBootTest
-class MyApplicationShould {
+@SpringBootTest(webEnvironment = NONE)
+@Testcontainers
+@ActiveProfiles("test")
+class MyApplicationIntegrationTest {
   @Autowired // We inject MyEventProducer (it should be a MyStreamEventProducer)
   @Qualifier("myStreamEventProducer") // Avoid SpringBootTest issue: expected single matching bean but found 2  
   lateinit var eventProducer: MyEventProducer
     
   @Test
-  fun `produce event`() {
+  fun `should produce event`() {
     // We produce an event using MyEventProducer
     val text = "hello ${UUID.randomUUID()}"
     eventProducer.produce(MyEvent(text))
@@ -139,7 +141,7 @@ class MyApplicationShould {
   }
 }
 ```
-* Check the complete test in [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt).
+* Check the complete test in [MyApplicationIntegrationTest.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationIntegrationTest.kt).
 
 ## Consumer with functional programming model
 
@@ -211,8 +213,10 @@ class MyConfiguration {
 
 ### 4) For testing we start a Kafka container using [Testcontainers](https://www.testcontainers.org/):
 ```kotlin
-@SpringBootTest
-class MyApplicationShould {
+@SpringBootTest(webEnvironment = NONE)
+@Testcontainers
+@ActiveProfiles("test")
+class MyApplicationIntegrationTest {
   @MockBean // We mock MyEventConsumer
   lateinit var eventConsumer: MyEventConsumer
 
@@ -232,7 +236,7 @@ class MyApplicationShould {
  }
 }
 ```
-* Check the complete test in [MyApplicationShould.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationShould.kt).
+* Check the complete test in [MyApplicationIntegrationTest.kt](src/test/kotlin/com/rogervinas/stream/MyApplicationIntegrationTest.kt).
 
 ## Extras
 
