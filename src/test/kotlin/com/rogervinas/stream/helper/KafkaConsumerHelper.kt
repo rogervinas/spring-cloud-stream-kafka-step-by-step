@@ -25,7 +25,7 @@ class KafkaConsumerHelper(bootstrapServers: String, topic: String) {
   }
 
   fun consumeAll(): List<ConsumerRecord<String, String>> {
-    return consumeAtLeast(5, Duration.ofSeconds(5))
+    return consumeAtLeast(100, Duration.ofSeconds(5))
   }
 
   fun consumeAtLeast(numberOfRecords: Int, timeout: Duration): List<ConsumerRecord<String, String>> {
