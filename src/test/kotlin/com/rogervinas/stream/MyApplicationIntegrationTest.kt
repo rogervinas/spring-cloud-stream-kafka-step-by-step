@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -34,6 +35,7 @@ import java.util.function.Consumer
 @SpringBootTest(webEnvironment = NONE)
 @Testcontainers
 @ActiveProfiles("test")
+@DirtiesContext
 class MyApplicationIntegrationTest {
 
   companion object {
