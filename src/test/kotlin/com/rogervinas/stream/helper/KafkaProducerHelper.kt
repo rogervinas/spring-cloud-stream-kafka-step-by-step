@@ -1,4 +1,4 @@
-package com.rogervinas.stream
+package com.rogervinas.stream.helper
 
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer
@@ -7,7 +7,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 
-class MyKafkaProducerHelper(bootstrapServers: String) {
+class KafkaProducerHelper(bootstrapServers: String) {
 
   private val producer: Producer<String, String>
 

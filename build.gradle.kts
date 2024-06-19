@@ -19,6 +19,7 @@ repositories {
 }
 
 val springCloudVersion = "2023.0.2"
+val testContainersVersion = "1.19.8"
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
@@ -29,7 +30,8 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-	implementation("org.testcontainers:testcontainers:1.19.8")
+  testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
+  testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("com.nhaarman:mockito-kotlin:1.6.0")
