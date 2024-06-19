@@ -96,7 +96,6 @@ class MyApplicationIntegrationTest {
 
   @Test
   fun `should retry consume event 5 times`() {
-    reset(eventConsumer)
     doThrow(MyRetryableException("retry later!")).`when`(eventConsumer).consume(any())
 
     val text = "hello ${UUID.randomUUID()}"
