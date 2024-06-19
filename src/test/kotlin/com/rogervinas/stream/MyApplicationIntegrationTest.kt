@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.mockito.Mockito.reset
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -25,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockReset
 import org.springframework.test.context.ActiveProfiles
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -52,7 +52,7 @@ class MyApplicationIntegrationTest {
   @Qualifier("myStreamEventProducer") // Avoid SpringBootTest issue: expected single matching bean but found 2
   lateinit var eventProducer: MyEventProducer
 
-  @MockBean
+  @MockBean(reset = MockReset.BEFORE)
   lateinit var eventConsumer: MyEventConsumer
 
   @Value("\${spring.cloud.stream.kafka.binder.brokers}")
@@ -63,7 +63,6 @@ class MyApplicationIntegrationTest {
 
   @BeforeEach
   fun setUp() {
-    reset(eventConsumer)
     kafkaConsumerHelper = KafkaConsumerHelper(kafkaBroker, TOPIC)
     kafkaConsumerHelper.consumeAll()
     kafkaDLQConsumerHelper = KafkaConsumerHelper(kafkaBroker, TOPIC_DLQ)
