@@ -1,6 +1,11 @@
 package com.rogervinas.stream
 
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.argumentCaptor
+import com.nhaarman.mockito_kotlin.doNothing
+import com.nhaarman.mockito_kotlin.doThrow
+import com.nhaarman.mockito_kotlin.timeout
+import com.nhaarman.mockito_kotlin.verify
 import com.rogervinas.stream.domain.MyEvent
 import com.rogervinas.stream.domain.MyEventConsumer
 import com.rogervinas.stream.domain.MyEventProducer
@@ -26,14 +31,13 @@ import org.springframework.boot.test.mock.mockito.MockReset
 import org.springframework.test.context.ActiveProfiles
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.util.*
+import java.util.UUID
 import java.util.function.Consumer
 
 @SpringBootTest(webEnvironment = NONE)
 @Testcontainers
 @ActiveProfiles("test")
 class MyApplicationIntegrationTest {
-
   companion object {
     private const val TOPIC = "my.topic"
     private const val TOPIC_DLQ = "my.topic.errors"
@@ -74,10 +78,12 @@ class MyApplicationIntegrationTest {
 
     val records = kafkaConsumerHelper.consumeAtLeast(1, TEN_SECONDS)
 
-    assertThat(records).singleElement().satisfies(Consumer { record ->
-      JSONAssert.assertEquals(record.value(), "{\"number\":${text.length},\"string\":\"$text\"}", true)
-      assertThat(record.key()).isEqualTo("key-${text.length}")
-    })
+    assertThat(records).singleElement().satisfies(
+      Consumer { record ->
+        JSONAssert.assertEquals(record.value(), "{\"number\":${text.length},\"string\":\"$text\"}", true)
+        assertThat(record.key()).isEqualTo("key-${text.length}")
+      },
+    )
   }
 
   @Test
@@ -116,9 +122,11 @@ class MyApplicationIntegrationTest {
     kafkaProducerHelper.send(TOPIC, "{\"number\":${text.length},\"string\":\"$text\"}")
 
     val errorRecords = kafkaDLQConsumerHelper.consumeAtLeast(1, TEN_SECONDS)
-    assertThat(errorRecords).singleElement().satisfies(Consumer { record ->
-      JSONAssert.assertEquals(record.value(), "{\"number\":${text.length},\"string\":\"$text\"}", true)
-    })
+    assertThat(errorRecords).singleElement().satisfies(
+      Consumer { record ->
+        JSONAssert.assertEquals(record.value(), "{\"number\":${text.length},\"string\":\"$text\"}", true)
+      },
+    )
   }
 
   @ParameterizedTest
@@ -127,8 +135,10 @@ class MyApplicationIntegrationTest {
     kafkaProducerHelper.send(TOPIC, body)
 
     val errorRecords = kafkaDLQConsumerHelper.consumeAtLeast(1, TEN_SECONDS)
-    assertThat(errorRecords).singleElement().satisfies(Consumer { record ->
-      assertThat(record.value()).isEqualTo(body)
-    })
+    assertThat(errorRecords).singleElement().satisfies(
+      Consumer { record ->
+        assertThat(record.value()).isEqualTo(body)
+      },
+    )
   }
 }

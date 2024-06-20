@@ -10,13 +10,13 @@ import reactor.core.publisher.Flux
 
 @Configuration
 class MyConfiguration {
-
   @Bean
-  fun myEventConsumer() = object : MyEventConsumer {
-    override fun consume(event: MyEvent) {
-      println("Received ${event.text}")
+  fun myEventConsumer() =
+    object : MyEventConsumer {
+      override fun consume(event: MyEvent) {
+        println("Received ${event.text}")
+      }
     }
-  }
 
   @Bean("my-consumer")
   fun myStreamEventConsumerFunction(consumer: MyEventConsumer): (MyEventPayload) -> Unit =

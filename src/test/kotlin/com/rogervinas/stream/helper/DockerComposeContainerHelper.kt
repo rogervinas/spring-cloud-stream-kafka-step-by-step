@@ -8,7 +8,6 @@ import org.testcontainers.containers.wait.strategy.WaitAllStrategy.Mode.WITH_IND
 import java.io.File
 
 class DockerComposeContainerHelper {
-
   companion object {
     private const val BROKER = "broker"
     private const val BROKER_PORT = 9094
@@ -24,14 +23,14 @@ class DockerComposeContainerHelper {
         BROKER_PORT,
         WaitAllStrategy(WITH_INDIVIDUAL_TIMEOUTS_ONLY)
           .withStrategy(forListeningPort())
-          .withStrategy(forLogMessage(".*started.*", 1))
+          .withStrategy(forLogMessage(".*started.*", 1)),
       )
       .withExposedService(
         ZOOKEEPER,
         ZOOKEEPER_PORT,
         WaitAllStrategy(WITH_INDIVIDUAL_TIMEOUTS_ONLY)
           .withStrategy(forListeningPort())
-          .withStrategy(forLogMessage(".*Started.*", 1))
+          .withStrategy(forLogMessage(".*Started.*", 1)),
       )
   }
 }
