@@ -1,1 +1,1 @@
-rootProject.name = "spring-cloud-stream-step-by-step"
+rootProject.name = "spring-cloud-stream-kafka-step-by-step"

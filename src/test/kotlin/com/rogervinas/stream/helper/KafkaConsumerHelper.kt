@@ -12,7 +12,6 @@ import java.util.Properties
 import java.util.UUID
 
 class KafkaConsumerHelper(bootstrapServers: String, topic: String) {
-
   private val consumer: Consumer<String, String>
 
   companion object {
@@ -28,7 +27,10 @@ class KafkaConsumerHelper(bootstrapServers: String, topic: String) {
     return consumeAtLeast(100, Duration.ofSeconds(5))
   }
 
-  fun consumeAtLeast(numberOfRecords: Int, timeout: Duration): List<ConsumerRecord<String, String>> {
+  fun consumeAtLeast(
+    numberOfRecords: Int,
+    timeout: Duration,
+  ): List<ConsumerRecord<String, String>> {
     val records: MutableList<ConsumerRecord<String, String>> = ArrayList()
     var millisLeft = timeout.toMillis()
     do {
@@ -44,8 +46,9 @@ class KafkaConsumerHelper(bootstrapServers: String, topic: String) {
     config.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
     config.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
     config.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
-    config.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
-      OffsetResetStrategy.EARLIEST.name.lowercase(Locale.getDefault())
+    config.setProperty(
+      ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
+      OffsetResetStrategy.EARLIEST.name.lowercase(Locale.getDefault()),
     )
     return config
   }
