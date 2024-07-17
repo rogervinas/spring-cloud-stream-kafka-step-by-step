@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Primary
 import org.springframework.messaging.Message
 import reactor.core.publisher.Flux
 
-
 @Configuration
 class MyConfiguration {
   @Bean
