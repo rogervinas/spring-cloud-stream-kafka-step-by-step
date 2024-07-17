@@ -32,11 +32,8 @@ class MyConfiguration {
   @Bean("my-producer")
   fun myStreamEventProducerFunction(producer: MyStreamEventProducer): () -> Flux<Message<MyEventPayload>> = producer
 
-  @Bean
-  @Primary
-  fun jacksonMapper(objectMapper: ObjectMapper): JacksonMapper {
-    // Workaround for https://github.com/spring-cloud/spring-cloud-function/issues/1158
-    // Introduced in spring-cloud-function 4.1.3 via spring-cloud-dependencies 2023.0.3
-    return JacksonMapper(objectMapper)
-  }
+  // Workaround for https://github.com/spring-cloud/spring-cloud-function/issues/1158
+  // Introduced in spring-cloud-function 4.1.3 via spring-cloud-dependencies 2023.0.3
+  @Bean @Primary
+  fun jacksonMapper(objectMapper: ObjectMapper) = JacksonMapper(objectMapper)
 }
