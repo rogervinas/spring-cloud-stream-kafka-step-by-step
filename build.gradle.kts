@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
 
 plugins {
-  id("org.springframework.boot") version "3.4.2"
+  id("org.springframework.boot") version "3.4.3"
   id("io.spring.dependency-management") version "1.1.7"
   kotlin("jvm") version "2.1.10"
   kotlin("plugin.spring") version "2.1.10"
@@ -18,7 +18,7 @@ repositories {
 }
 
 val springCloudVersion = "2024.0.0"
-val testContainersVersion = "1.20.4"
+val testContainersVersion = "1.20.5"
 
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
@@ -34,7 +34,7 @@ dependencies {
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("com.nhaarman:mockito-kotlin:1.6.0")
-  testImplementation("org.awaitility:awaitility:4.2.2")
+  testImplementation("org.awaitility:awaitility:4.3.0")
 }
 
 dependencyManagement {
