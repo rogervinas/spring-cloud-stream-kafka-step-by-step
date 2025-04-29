@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
 
 plugins {
-  id("org.springframework.boot") version "3.4.4"
+  id("org.springframework.boot") version "3.4.5"
   id("io.spring.dependency-management") version "1.1.7"
   kotlin("jvm") version "2.1.20"
   kotlin("plugin.spring") version "2.1.20"
@@ -18,7 +18,7 @@ repositories {
 }
 
 val springCloudVersion = "2024.0.1"
-val testContainersVersion = "1.20.6"
+val testContainersVersion = "1.21.0"
 
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
