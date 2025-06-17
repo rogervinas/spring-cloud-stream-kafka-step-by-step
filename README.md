@@ -217,7 +217,7 @@ class MyConfiguration {
 @Testcontainers
 @ActiveProfiles("test")
 class MyApplicationIntegrationTest {
-  @MockBean // We mock MyEventConsumer
+  @MockitoBean // We mock MyEventConsumer
   lateinit var eventConsumer: MyEventConsumer
 
   @Test
