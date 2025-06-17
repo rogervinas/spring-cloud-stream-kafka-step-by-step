@@ -9,10 +9,8 @@ import java.io.File
 
 class DockerComposeContainerHelper {
   companion object {
-    private const val BROKER = "broker"
-    private const val BROKER_PORT = 9094
-    private const val ZOOKEEPER = "zookeeper"
-    private const val ZOOKEEPER_PORT = 2181
+    private const val BROKER = "kafka-kraft"
+    private const val BROKER_PORT = 9092
   }
 
   fun createContainer(): ComposeContainer {
@@ -23,14 +21,7 @@ class DockerComposeContainerHelper {
         BROKER_PORT,
         WaitAllStrategy(WITH_INDIVIDUAL_TIMEOUTS_ONLY)
           .withStrategy(forListeningPort())
-          .withStrategy(forLogMessage(".*started.*", 1)),
-      )
-      .withExposedService(
-        ZOOKEEPER,
-        ZOOKEEPER_PORT,
-        WaitAllStrategy(WITH_INDIVIDUAL_TIMEOUTS_ONLY)
-          .withStrategy(forListeningPort())
-          .withStrategy(forLogMessage(".*Started.*", 1)),
+          .withStrategy(forLogMessage(".*Kafka Server started.*", 1)),
       )
   }
 }
