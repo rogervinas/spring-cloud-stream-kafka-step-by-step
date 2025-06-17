@@ -60,7 +60,7 @@ spring:
     stream:
       kafka:
         binder:
-          brokers: "localhost:9094"
+          brokers: "localhost:9092"
       bindings:
         my-producer-out-0:
           destination: "my.topic"
@@ -165,7 +165,7 @@ spring:
     stream:
       kafka:
         binder:
-          brokers: "localhost:9094"
+          brokers: "localhost:9092"
       bindings:
         my-consumer-in-0:
           destination: "my.topic"
@@ -270,7 +270,7 @@ spring:
     stream:
       kafka:
         binder:
-          brokers: "localhost:9094"
+          brokers: "localhost:9092"
           producer-properties:
             key.serializer: "org.apache.kafka.common.serialization.StringSerializer"
 ```
@@ -365,7 +365,7 @@ spring:
     stream:
       kafka:
         binder:
-          brokers: "localhost:9094"
+          brokers: "localhost:9092"
         bindings:
           my-consumer-in-0:
             consumer:
@@ -442,12 +442,12 @@ docker-compose down
 Then you can use [kcat](https://github.com/edenhill/kcat) to produce/consume to/from Kafka:
 ```shell
 # consume
-kcat -b localhost:9094 -C -t my.topic
-kcat -b localhost:9094 -C -t my.topic.errors
+kcat -b localhost:9092 -C -t my.topic
+kcat -b localhost:9092 -C -t my.topic.errors
 
 # produce a valid message
-echo '{"string":"hello!", "number":37}' | kcat -b localhost:9094 -P -t my.topic
+echo '{"string":"hello!", "number":37}' | kcat -b localhost:9092 -P -t my.topic
 
 # produce an invalid message
-echo 'hello!' | kcat -b localhost:9094 -P -t my.topic
+echo 'hello!' | kcat -b localhost:9092 -P -t my.topic
 ```

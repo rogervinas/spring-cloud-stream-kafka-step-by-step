@@ -1,27 +1,22 @@
-version: "3"
-
 services:
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.9.1
-    hostname: zookeeper
-    ports:
-      - "2181:2181"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-
-  broker:
+  kafka-kraft:
     image: confluentinc/cp-kafka:8.0.0
-    hostname: broker
-    depends_on:
-      - zookeeper
+    hostname: kafka-kraft
     ports:
-      - "9094:9094"
+      - "9101:9101"
+      - "9092:9092"
     environment:
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://broker:29094,LISTENER_DOCKER_EXTERNAL://localhost:9094
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      # From https://docs.confluent.io/platform/current/installation/docker/config-reference.html#cp-kafka-example
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-kraft:29092,PLAINTEXT_HOST://localhost:9092"
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: "localhost"
+      KAFKA_PROCESS_ROLES: "broker,controller"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-kraft:29093"
+      KAFKA_LISTENERS: "PLAINTEXT://kafka-kraft:29092,CONTROLLER://kafka-kraft:29093,PLAINTEXT_HOST://0.0.0.0:9092"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
