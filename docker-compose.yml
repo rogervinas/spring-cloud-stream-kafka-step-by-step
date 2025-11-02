@@ -1,7 +1,7 @@
 services:
 
   kafka-kraft:
-    image: confluentinc/cp-kafka:8.0.1
+    image: confluentinc/cp-kafka:8.0.2
     hostname: kafka-kraft
     ports:
       - "9101:9101"
