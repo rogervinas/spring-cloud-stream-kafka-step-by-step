@@ -17,14 +17,14 @@ repositories {
   mavenCentral()
 }
 
-val springCloudVersion = "2025.0.0"
+val springCloudVersion = "2025.1.0"
 val testContainersVersion = "1.21.3"
 
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.cloud:spring-cloud-starter-stream-kafka")
-
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("org.springframework.boot:spring-boot-starter-json")
+  implementation("org.springframework.boot:spring-boot-starter-kotlin-serialization")
 
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
