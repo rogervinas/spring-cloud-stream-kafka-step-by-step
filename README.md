@@ -1,8 +1,7 @@
 ![CI](https://github.com/rogervinas/spring-cloud-stream-kafka-step-by-step/actions/workflows/ci.yml/badge.svg)
 ![Java](https://img.shields.io/badge/Java-21-blue?labelColor=black)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.x-blue?labelColor=black)
-![SpringBoot](https://img.shields.io/badge/SpringBoot-3.x-blue?labelColor=black)
-![SpringCloud](https://img.shields.io/badge/SpringCloud-2024.x-blue?labelColor=black)
+![SpringBoot](https://img.shields.io/badge/SpringBoot-4.x-blue?labelColor=black)
 
 # Spring Cloud Stream & Kafka binder step by step
 

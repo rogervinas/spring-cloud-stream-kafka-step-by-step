@@ -4,10 +4,9 @@ import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.clients.consumer.OffsetResetStrategy
+import org.apache.kafka.clients.consumer.internals.AutoOffsetResetStrategy
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.time.Duration
-import java.util.Locale
 import java.util.Properties
 import java.util.UUID
 
@@ -46,10 +45,7 @@ class KafkaConsumerHelper(bootstrapServers: String, topic: String) {
     config.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
     config.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
     config.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
-    config.setProperty(
-      ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
-      OffsetResetStrategy.EARLIEST.name.lowercase(Locale.getDefault()),
-    )
+    config.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, AutoOffsetResetStrategy.EARLIEST.name())
     return config
   }
 }
