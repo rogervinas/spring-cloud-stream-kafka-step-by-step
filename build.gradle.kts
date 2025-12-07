@@ -23,7 +23,9 @@ val testContainersVersion = "1.21.3"
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.cloud:spring-cloud-starter-stream-kafka")
+
   implementation("org.springframework.boot:spring-boot-starter-jackson")
+  implementation("tools.jackson.module:jackson-module-kotlin")
 
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
