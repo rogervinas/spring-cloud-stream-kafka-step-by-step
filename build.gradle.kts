@@ -4,10 +4,10 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
 
 plugins {
-  id("org.springframework.boot") version "4.1.1"
+  id("org.springframework.boot") version "4.1.2"
   id("io.spring.dependency-management") version "1.1.7"
-  kotlin("jvm") version "2.4.10"
-  kotlin("plugin.spring") version "2.4.10"
+  kotlin("jvm") version "2.4.21"
+  kotlin("plugin.spring") version "2.4.21"
 }
 
 group = "com.rogervinas"
@@ -17,7 +17,7 @@ repositories {
   mavenCentral()
 }
 
-val springCloudVersion = "2025.1.3"
+val springCloudVersion = "2025.1.4"
 val testContainersVersion = "1.21.4"
 
 dependencies {
